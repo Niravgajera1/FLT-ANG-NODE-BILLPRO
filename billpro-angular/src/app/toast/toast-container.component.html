@@ -1,0 +1,23 @@
+<div class="pointer-events-none fixed inset-x-0 top-5 z-50 flex justify-end px-4 sm:px-6">
+  <div class="space-y-3 w-full max-w-sm">
+    <div *ngFor="let toast of toastService.toasts(); trackBy: trackById"
+         class="pointer-events-auto rounded-3xl border p-4 shadow-2xl shadow-slate-950/10 transition-all duration-300"
+         [ngClass]="toastTypeClass(toast.type)"
+         [class.opacity-0]="toast.hiding"
+         [class.translate-y-3]="toast.hiding">
+      <div class="flex items-start gap-3">
+        <div class="flex-1">
+          <p class="text-sm font-semibold capitalize">{{ toast.type }}</p>
+          <p class="mt-1 text-sm leading-6 text-slate-700">{{ toast.message }}</p>
+        </div>
+        <button
+          type="button"
+          class="text-slate-500 hover:text-slate-900"
+          (click)="toastService.hide(toast.id)">
+          <span class="sr-only">Dismiss notification</span>
+          ×
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
