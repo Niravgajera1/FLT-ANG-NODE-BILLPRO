@@ -6,7 +6,7 @@
     <div class="mb-8 p-6 rounded-2xl bg-gradient-to-r from-primary-600 to-primary-800 text-white shadow-btn">
       <div class="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 class="text-2xl font-extrabold">Good morning, {{ (auth.currentUser()?.name?.split(' ') ?? [''])[0] }}! 👋</h1>
+          <h1 class="text-2xl font-extrabold">{{ istGreeting }}, {{ (auth.currentUser()?.name?.split(' ') ?? [''])[0] }}! 👋</h1>
           <p class="text-primary-200 text-sm mt-1">Here's what's happening with your billing today.</p>
         </div>
         <button routerLink="/create-invoice/add" class="px-5 py-2.5 rounded-xl bg-white text-primary-700 text-sm font-bold

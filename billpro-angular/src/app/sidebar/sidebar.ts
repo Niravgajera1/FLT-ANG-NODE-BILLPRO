@@ -25,7 +25,7 @@ export class Sidebar implements OnInit, OnDestroy {
 
   readonly navItems: NavItem[] = [
     { label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
-    { label: 'Company Details', icon: 'company', route: '/company' },
+    { label: 'Customer Details', icon: 'company', route: '/customer' },
     { label: 'Product Details', icon: 'product', route: '/products' },
     { label: 'Create Invoice', icon: 'invoice', route: '/create-invoice' },
   ];

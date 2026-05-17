@@ -13,7 +13,7 @@
           </svg>
         </div>
         <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">Create your account</h1>
-        <p class="text-sm text-gray-500 mt-1 font-medium">Sign up to start using BillFlow.</p>
+        <p class="text-sm text-gray-500 mt-1 font-medium">Sign up to start using Bill Pro.</p>
       </div>
 
       <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="space-y-5">
@@ -34,12 +34,25 @@
         </div>
 
         <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Phone</label>
-          <input type="tel" formControlName="phone" placeholder="+919876543210" class="input-field w-full" [class.error]="phoneCtrl.touched && phoneCtrl.invalid" />
-          @if (phoneCtrl.touched && phoneCtrl.errors) {
-            <p class="mt-1.5 text-xs text-red-500">Enter a valid phone number with digits only.</p>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Mobile</label>
+          <input type="tel" formControlName="mobile" placeholder="9876543211" class="input-field w-full" [class.error]="mobileCtrl.touched && mobileCtrl.invalid" />
+          @if (mobileCtrl.touched && mobileCtrl.errors) {
+            <p class="mt-1.5 text-xs text-red-500">Enter a valid mobile number with digits only.</p>
           }
         </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Referral Code (Optional)</label>
+          <input type="text" formControlName="referralCode" placeholder="Enter referral code" class="input-field w-full" />
+        </div>
+
+        <div class="flex items-center gap-3">
+          <input id="acceptTerms" type="checkbox" formControlName="acceptTerms" class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
+          <label for="acceptTerms" class="text-sm text-gray-600">I agree to the terms and conditions.</label>
+        </div>
+        @if (acceptTermsCtrl.touched && acceptTermsCtrl.invalid) {
+          <p class="mt-1.5 text-xs text-red-500">You must accept the terms to continue.</p>
+        }
 
         <div>
           <label class="block text-sm font-semibold text-gray-700 mb-1.5">Password</label>
@@ -57,7 +70,23 @@
           }
         </div>
 
-        <button type="submit" class="btn-primary w-full">Create account</button>
+        <div>
+          <button
+            type="submit"
+            class="btn-primary w-full flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-70"
+            [disabled]="showLoading()"
+          >
+            @if (showLoading()) {
+              <svg class="animate-spin w-5 h-5 text-white" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+              </svg>
+              <span>Creating account…</span>
+            } @else {
+              <span>Create account</span>
+            }
+          </button>
+        </div>
       </form>
 
       <p class="text-sm text-center text-gray-500 mt-6">

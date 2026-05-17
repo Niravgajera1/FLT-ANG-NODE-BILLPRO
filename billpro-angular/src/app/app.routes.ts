@@ -21,29 +21,44 @@ export const routes: Routes = [
       import('./auth/otp-verification/otp-verification.component').then(m => m.OtpVerificationComponent)
   },
   {
+    path: 'forgot-password',
+    canActivate: [loginGuard],
+    loadComponent: () =>
+      import('./auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent)
+  },
+  {
     path: 'dashboard',
     canActivate: [authGuard],
     loadComponent: () =>
       import('./dashboard/dashboard.component').then(m => m.DashboardComponent)
   },
   {
-    path: 'company',
+    path: 'profile',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./profile/profile.component').then(m => m.ProfileComponent)
+  },
+  {
+    path: 'customer',
     canActivate: [authGuard],
     loadComponent: () =>
       import('./company/company-list/company-list').then(m => m.CompanyList)
   },
   {
-    path: 'company/add',
+    path: 'customer/add',
     canActivate: [authGuard],
     loadComponent: () =>
       import('./company/company-form/company-form.component').then(m => m.CompanyFormComponent)
   },
   {
-    path: 'company/:id/edit',
+    path: 'customer/:id/edit',
     canActivate: [authGuard],
     loadComponent: () =>
       import('./company/company-form/company-form.component').then(m => m.CompanyFormComponent)
   },
+  { path: 'company', redirectTo: 'customer', pathMatch: 'full' },
+  { path: 'company/add', redirectTo: 'customer/add', pathMatch: 'full' },
+  { path: 'company/:id/edit', redirectTo: 'customer/:id/edit', pathMatch: 'full' },
   {
     path: 'products',
     canActivate: [authGuard],

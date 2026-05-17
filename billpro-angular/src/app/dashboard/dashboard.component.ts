@@ -35,6 +35,22 @@ export class DashboardComponent {
     setTimeout(() => this.auth.logout(), 700);
   }
 
+  get istGreeting(): string {
+    const nowInIST = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    const hour = nowInIST.getHours();
+
+    if (hour < 12) {
+      return 'Good morning';
+    }
+    if (hour < 16) {
+      return 'Good afternoon';
+    }
+    if (hour < 20) {
+      return 'Good evening';
+    }
+    return 'Good night';
+  }
+
   statusClass(status: string): string {
     return {
       'Paid':    'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',

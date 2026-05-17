@@ -22,16 +22,20 @@ export class SignupComponent {
   form: FormGroup = this.fb.group({
     fullName: ['', [Validators.required, Validators.minLength(3)]],
     email: ['', [Validators.required, Validators.email]],
-    phone: ['', [Validators.required, Validators.pattern(/^\+?[0-9]{7,15}$/)]],
+    mobile: ['', [Validators.required, Validators.pattern(/^\+?[0-9]{7,15}$/)]],
     password: ['', [Validators.required, Validators.minLength(6)]],
-    confirmPassword: ['', [Validators.required]]
+    confirmPassword: ['', [Validators.required]],
+    acceptTerms: [false, [Validators.requiredTrue]],
+    referralCode: ['']
   });
 
   get fullNameCtrl() { return this.form.get('fullName')!; }
   get emailCtrl() { return this.form.get('email')!; }
-  get phoneCtrl() { return this.form.get('phone')!; }
+  get mobileCtrl() { return this.form.get('mobile')!; }
   get passwordCtrl() { return this.form.get('password')!; }
   get confirmPasswordCtrl() { return this.form.get('confirmPassword')!; }
+  get acceptTermsCtrl() { return this.form.get('acceptTerms')!; }
+  get referralCodeCtrl() { return this.form.get('referralCode')!; }
 
   get confirmPasswordError(): string {
     const ctrl = this.confirmPasswordCtrl;
@@ -51,18 +55,35 @@ export class SignupComponent {
       return;
     }
 
-    const { fullName, email, phone, password } = this.form.value;
+    const {
+      fullName,
+      email,
+      mobile,
+      password,
+      confirmPassword,
+      acceptTerms,
+      referralCode
+    } = this.form.value;
     this.showLoading.set(true);
 
-    const success = await this.signupService.register(fullName, email, phone, password);
+    const success = await this.signupService.register(
+      fullName,
+      email,
+      mobile,
+      password,
+      confirmPassword,
+      acceptTerms,
+      referralCode
+    );
     this.showLoading.set(false);
+    const message = this.signupService.lastApiMessage();
 
     if (!success) {
-      this.toast.error('Signup failed. Please try again with a different email or check your network.');
+      this.toast.error(message || 'Signup failed. Please try again with a different email or check your network.');
       return;
     }
 
-    this.toast.success('Registration successful. Enter the OTP to verify your account.');
+    this.toast.success(message || 'Registration successful. Enter the OTP to verify your account.');
     this.router.navigate(['/signup/verify']);
   }
 }

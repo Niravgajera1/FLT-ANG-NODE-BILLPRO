@@ -45,8 +45,9 @@ export class OtpVerificationComponent {
     }
 
     const verified = await this.signupService.verifyOtp(this.form.value.otp);
+    const message = this.signupService.lastApiMessage();
     if (!verified) {
-      this.toast.error('The OTP is incorrect or verification failed. Please try again.');
+      this.toast.error(message || 'The OTP is incorrect or verification failed. Please try again.');
       return;
     }
 
@@ -63,7 +64,7 @@ export class OtpVerificationComponent {
       return;
     }
 
-    this.toast.success('Account verified and ready to use!');
+    this.toast.success(message || 'Account verified and ready to use!');
     this.auth.login(signupData.email, signupData.password, false);
     this.router.navigate(['/dashboard']);
   }
