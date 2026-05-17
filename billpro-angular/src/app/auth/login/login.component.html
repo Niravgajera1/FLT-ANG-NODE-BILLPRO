@@ -1,0 +1,204 @@
+<!-- Full page background -->
+<div class="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-slate-100 flex items-center justify-center p-4 relative overflow-hidden">
+
+  <!-- Decorative background blobs -->
+  <div class="absolute top-0 left-0 w-[600px] h-[600px] bg-primary-100 rounded-full -translate-x-1/2 -translate-y-1/2 opacity-40 blur-3xl pointer-events-none"></div>
+  <div class="absolute bottom-0 right-0 w-[500px] h-[500px] bg-blue-200 rounded-full translate-x-1/2 translate-y-1/2 opacity-30 blur-3xl pointer-events-none"></div>
+  <div class="absolute top-1/2 left-1/2 w-[300px] h-[300px] bg-indigo-100 rounded-full -translate-x-1/2 -translate-y-1/2 opacity-20 blur-2xl pointer-events-none"></div>
+
+  <!-- Login Card -->
+  <div class="relative w-full max-w-md">
+
+    <!-- Card -->
+    <div class="bg-white rounded-3xl p-8 sm:p-10 shadow-card border border-gray-100/80 fade-up">
+
+      <!-- Logo / Brand -->
+      <div class="flex flex-col items-center mb-8 fade-up fade-up-delay-1">
+        <!-- Company Logo Placeholder -->
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center shadow-btn mb-4">
+          <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+              d="M9 7H6a2 2 0 00-2 2v9a2 2 0 002 2h9a2 2 0 002-2v-3
+                 M9 7V5a2 2 0 012-2h2M9 7h6m0 0v2m0-2a2 2 0 012 2v3
+                 M3 15h6m6 0h6M12 3v6"/>
+          </svg>
+        </div>
+        <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">BillFlow</h1>
+        <p class="text-sm text-gray-500 mt-1 font-medium">Enterprise Billing &amp; ERP Suite</p>
+      </div>
+
+      <!-- Header text -->
+      <div class="mb-7 fade-up fade-up-delay-2">
+        <h2 class="text-xl font-bold text-gray-900">Sign in to your account</h2>
+        <p class="text-sm text-gray-500 mt-1">Enter your credentials to access the portal.</p>
+      </div>
+
+      <!-- Form -->
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="space-y-5 fade-up fade-up-delay-3">
+
+        <!-- Email Field -->
+        <div>
+          <label for="email" class="block text-sm font-semibold text-gray-700 mb-1.5">
+            Email Address
+          </label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
+              <svg class="w-4.5 h-4.5" style="width:18px;height:18px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+              </svg>
+            </span>
+            <input
+              id="email"
+              type="email"
+              formControlName="email"
+              autocomplete="email"
+              placeholder="admin@test.com"
+              class="input-field pl-10"
+              [class.error]="emailCtrl.touched && emailCtrl.invalid"
+            />
+          </div>
+          @if (emailError) {
+            <p class="mt-1.5 text-xs text-red-500 font-medium flex items-center gap-1">
+              <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+              {{ emailError }}
+            </p>
+          }
+        </div>
+
+        <!-- Password Field -->
+        <div>
+          <label for="password" class="block text-sm font-semibold text-gray-700 mb-1.5">
+            Password
+          </label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
+              <svg class="w-4.5 h-4.5" style="width:18px;height:18px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              </svg>
+            </span>
+            <input
+              id="password"
+              [type]="showPassword() ? 'text' : 'password'"
+              formControlName="password"
+              autocomplete="current-password"
+              placeholder="••••••••"
+              class="input-field pl-10 pr-12"
+              [class.error]="passwordCtrl.touched && passwordCtrl.invalid"
+            />
+            <button
+              type="button"
+              (click)="togglePassword()"
+              class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+              [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+            >
+              @if (showPassword()) {
+                <!-- Eye-Off icon -->
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7
+                       a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243
+                       M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29
+                       m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5
+                       c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411
+                       m0 0L21 21"/>
+                </svg>
+              } @else {
+                <!-- Eye icon -->
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5
+                       c4.478 0 8.268 2.943 9.542 7
+                       -1.274 4.057-5.064 7-9.542 7
+                       -4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+              }
+            </button>
+          </div>
+          @if (passwordError) {
+            <p class="mt-1.5 text-xs text-red-500 font-medium flex items-center gap-1">
+              <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+              {{ passwordError }}
+            </p>
+          }
+        </div>
+
+        <!-- Remember me + Forgot password -->
+        <div class="flex items-center justify-between pt-1">
+          <label class="flex items-center gap-2.5 cursor-pointer group">
+            <div class="relative">
+              <input
+                type="checkbox"
+                formControlName="rememberMe"
+                class="sr-only peer"
+              />
+              <div class="w-5 h-5 rounded-md border-2 border-gray-300 bg-white transition-all duration-150
+                          peer-checked:bg-primary-600 peer-checked:border-primary-600 group-hover:border-primary-400
+                          flex items-center justify-center">
+                <svg class="w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                     [style.opacity]="form.get('rememberMe')?.value ? '1' : '0'">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+            </div>
+            <span class="text-sm text-gray-600 font-medium select-none">Remember me</span>
+          </label>
+
+          <button
+            type="button"
+            class="text-sm font-semibold text-primary-600 hover:text-primary-800 transition-colors focus:outline-none focus:underline"
+          >
+            Forgot password?
+          </button>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="pt-2">
+          <button
+            type="submit"
+            class="btn-primary flex items-center justify-center gap-2"
+            [disabled]="isLoading()"
+          >
+            @if (isLoading()) {
+              <svg class="animate-spin w-5 h-5 text-white" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+              </svg>
+              <span>Signing in…</span>
+            } @else {
+              <span>Sign In</span>
+              <svg class="w-4.5 h-4.5" style="width:18px;height:18px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+              </svg>
+            }
+          </button>
+        </div>
+
+      </form>
+
+      <!-- Divider hint -->
+      <div class="mt-6 text-center text-sm text-gray-500">
+        <p>New here? <a routerLink="/signup" class="font-semibold text-primary-600 hover:text-primary-800">Create an account</a></p>
+      </div>
+      <div class="mt-8 pt-6 border-t border-gray-100 fade-up fade-up-delay-4">
+        <p class="text-xs text-center text-gray-400 font-medium">
+          Demo credentials &mdash;
+          <span class="text-gray-500">admin&#64;test.com</span> /
+          <span class="text-gray-500">123456</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <p class="text-center text-xs text-gray-400 mt-6 font-medium">
+      &copy; 2025 BillFlow Inc. &bull; All rights reserved.
+    </p>
+  </div>
+</div>
