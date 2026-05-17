@@ -1,0 +1,11 @@
+# ─── Release Key Properties ───────────────────────────────────────────────────
+# Generate your keystore:
+#   keytool -genkey -v -keystore billpro-release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias billpro
+#
+# Then fill in the values below and rename this file to key.properties
+# DO NOT commit key.properties to version control!
+
+storePassword=YOUR_STORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
+keyAlias=billpro
+storeFile=../app/billpro-release.jks
