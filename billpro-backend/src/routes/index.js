@@ -10,6 +10,7 @@ const purchaseRoutes  = require('../modules/purchase/purchaseBill.routes');
 const salesRoutes     = require('../modules/sales/salesInvoice.routes');
 const dashboardRoutes = require('../modules/dashboard/dashboard.routes');
 const reportRoutes    = require('../modules/reports/report.routes');
+const commonRoutes    = require('../modules/common/common.routes');
 
 // ─── Route Bindings ───────────────────────────────────────────────────────────
 router.use('/auth',      authRoutes);
@@ -21,5 +22,6 @@ router.use('/purchase',  purchaseRoutes);
 router.use('/sales',     salesRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/reports',   reportRoutes);
+router.use('/common',    commonRoutes);
 
 module.exports = router;

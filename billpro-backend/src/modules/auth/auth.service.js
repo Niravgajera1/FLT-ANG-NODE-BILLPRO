@@ -54,9 +54,27 @@ const register = async ({ fullName, email, mobile, password, referralCode }) => 
 
 // ─── OTP Verification ─────────────────────────────────────────────────────────
 
-const verifyUserOTP = async ({ identifier, otp, purpose }) => {
+const verifyUserOTP = async ({ identifier, otp, purpose, type }) => {
   const result = await verifyOTP(identifier, otp, purpose);
   if (!result.valid) throw Object.assign(new Error(result.reason), { statusCode: 400 });
+
+  if (type === '1' || type === 1) {
+    const user = await User.findOne({ email: identifier });
+    if (!user) throw Object.assign(new Error('User not found'), { statusCode: 404 });
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+    user.passwordResetToken = hashedToken;
+    user.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes expiry
+    await user.save({ validateBeforeSave: false });
+
+    return { message: 'OTP verified successfully', token: resetToken };
+  }
+
+  if (purpose === 'password_reset') {
+    return { message: 'OTP verified successfully' };
+  }
 
   const field = purpose === 'email_verify' ? 'isEmailVerified' : 'isMobileVerified';
   const query = purpose === 'email_verify' ? { email: identifier } : { mobile: identifier };
@@ -117,7 +135,7 @@ const loginWithOTP = async ({ mobile }) => {
   const otp = await storeOTP(mobile, 'login');
   const { sendOTPEmail } = require('../../utils/emailService');
   await sendOTPEmail(user.email, otp, 'login');
-  
+
   return { message: 'OTP sent to your registered email address' };
 };
 
@@ -178,18 +196,18 @@ const logout = async (userId, accessToken, refreshToken) => {
 
 const forgotPassword = async (email) => {
   const user = await User.findOne({ email });
-  if (!user) return; // Silent — don't reveal if email exists
+  if (!user) {
+    throw Object.assign(new Error('User not found'), { statusCode: 404 });
+  }
 
-  const token = crypto.randomBytes(32).toString('hex');
-  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+  // Generate 6-digit OTP for password reset
+  const otp = await storeOTP(email, 'password_reset');
 
-  user.passwordResetToken = hashedToken;
-  user.passwordResetExpires = Date.now() + 30 * 60 * 1000; // 30 mins
-  await user.save({ validateBeforeSave: false });
+  // Send email OTP
+  const { sendOTPEmail } = require('../../utils/emailService');
+  await sendOTPEmail(email, otp, 'password_reset');
 
-  const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
-  // TODO: Send email with resetUrl
-  logger.info(`Password reset link generated for ${email}: ${resetUrl}`);
+  logger.info(`Password reset OTP generated for ${email}`);
 };
 
 const resetPassword = async ({ token, password }) => {
@@ -224,6 +242,26 @@ const changePassword = async (userId, { currentPassword, newPassword }) => {
   await user.save();
 };
 
+const resendVerificationOTP = async (email) => {
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw Object.assign(new Error('User not found'), { statusCode: 404 });
+  }
+
+  if (user.isEmailVerified) {
+    throw Object.assign(new Error('Email is already verified'), { statusCode: 400 });
+  }
+
+  // Generate new OTP
+  const emailOTP = await storeOTP(email, 'email_verify');
+
+  // Send email
+  const { sendOTPEmail } = require('../../utils/emailService');
+  await sendOTPEmail(email, emailOTP, 'registration');
+
+  return { message: 'Verification OTP resent successfully' };
+};
+
 module.exports = {
   register,
   verifyUserOTP,
@@ -235,5 +273,6 @@ module.exports = {
   forgotPassword,
   resetPassword,
   changePassword,
+  resendVerificationOTP,
   generateTokens,
 };

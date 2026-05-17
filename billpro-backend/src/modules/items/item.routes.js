@@ -1,5 +1,5 @@
 const express = require('express');
-const router  = express.Router();
+const router = express.Router();
 const itemService = require('./item.service');
 const { sendSuccess, sendCreated, sendPaginated } = require('../../utils/responseHelper');
 const { authenticate, attachCompany } = require('../../middleware/auth.middleware');

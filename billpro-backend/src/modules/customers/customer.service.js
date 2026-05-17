@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Customer = require('./customer.model');
 
 const generateCustomerCode = async (companyId) => {
@@ -6,8 +7,26 @@ const generateCustomerCode = async (companyId) => {
 };
 
 const createCustomer = async (companyId, data) => {
+  if (data.email !== undefined) {
+    const trimmedEmail = data.email ? data.email.trim().toLowerCase() : '';
+    if (trimmedEmail) {
+      data.email = trimmedEmail; // Sanitize in place
+      const companyObjectId = new mongoose.Types.ObjectId(companyId);
+      const existing = await Customer.findOne({
+        companyId: companyObjectId,
+        email: { $regex: new RegExp(`^${trimmedEmail}$`, 'i') }
+      });
+      if (existing) {
+        throw Object.assign(new Error('Customer with this email already exists for this company'), { statusCode: 409 });
+      }
+    } else {
+      delete data.email; // If empty string, delete key so it's not stored in Mongo
+    }
+  }
+
   const customerCode = await generateCustomerCode(companyId);
-  return Customer.create({ ...data, companyId, customerCode });
+  const created = await Customer.create({ ...data, companyId, customerCode });
+  return created;
 };
 
 const getCustomers = async (companyId, { page = 1, limit = 20, search, customerType, isActive = true }) => {
@@ -36,6 +55,24 @@ const getCustomerById = async (companyId, customerId) => {
 };
 
 const updateCustomer = async (companyId, customerId, data) => {
+  if (data.email !== undefined) {
+    const trimmedEmail = data.email ? data.email.trim().toLowerCase() : '';
+    if (trimmedEmail) {
+      data.email = trimmedEmail; // Sanitize in place
+      const companyObjectId = new mongoose.Types.ObjectId(companyId);
+      const existing = await Customer.findOne({
+        companyId: companyObjectId,
+        email: { $regex: new RegExp(`^${trimmedEmail}$`, 'i') },
+        _id: { $ne: new mongoose.Types.ObjectId(customerId) }
+      });
+      if (existing) {
+        throw Object.assign(new Error('Customer with this email already exists for this company'), { statusCode: 409 });
+      }
+    } else {
+      delete data.email; // If empty string, delete key so it's not stored in Mongo
+    }
+  }
+
   const customer = await Customer.findOneAndUpdate({ _id: customerId, companyId }, { $set: data }, { new: true, runValidators: true });
   if (!customer) throw Object.assign(new Error('Customer not found'), { statusCode: 404 });
   return customer;

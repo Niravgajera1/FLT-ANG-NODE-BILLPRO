@@ -41,16 +41,19 @@ const { getOTPEmailTemplate } = require('../templates/emails/otpTemplate');
  */
 const sendOTPEmail = async (email, otp, purpose = 'registration') => {
   try {
-    const purposeStr = purpose === 'registration' ? 'creating your account' :
-      purpose === 'login' ? 'logging into your account' :
-        'verifying your request';
     const expiryMinutes = process.env.OTP_EXPIRY_MINUTES || 10;
+
+    // Select custom subject line based on purpose
+    const subject = purpose === 'registration' ? `${otp} is your BillPro verification code` :
+      purpose === 'login' ? `${otp} is your BillPro login code` :
+      purpose === 'password_reset' ? `${otp} is your BillPro password reset code` :
+      `${otp} is your BillPro code`;
 
     const info = await transporter.sendMail({
       from: `"BillPro Team" <${process.env.EMAIL_FROM || 'noreply@billpro.in'}>`,
       to: email,
-      subject: `${otp} is your BillPro Verification Code`,
-      html: getOTPEmailTemplate(otp, purposeStr, expiryMinutes),
+      subject,
+      html: getOTPEmailTemplate(otp, purpose, expiryMinutes),
     });
 
     if (process.env.NODE_ENV === 'development' && !process.env.SMTP_HOST) {

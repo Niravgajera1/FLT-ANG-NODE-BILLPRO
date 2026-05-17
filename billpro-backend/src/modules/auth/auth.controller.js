@@ -20,7 +20,10 @@ const register = async (req, res, next) => {
 
 const verifyOTP = async (req, res, next) => {
   try {
-    const result = await authService.verifyUserOTP(req.body);
+    const result = await authService.verifyUserOTP({
+      ...req.body,
+      type: req.query.type,
+    });
     return sendSuccess(res, result);
   } catch (err) {
     next(err);
@@ -168,9 +171,19 @@ const getMe = async (req, res, next) => {
   }
 };
 
+const resendOTP = async (req, res, next) => {
+  try {
+    const result = await authService.resendVerificationOTP(req.body.email);
+    return sendSuccess(res, result, result.message);
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   register,
   verifyOTP,
+  resendOTP,
   login,
   sendLoginOTP,
   verifyLoginOTP,

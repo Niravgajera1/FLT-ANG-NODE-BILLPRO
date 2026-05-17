@@ -11,29 +11,29 @@ const passwordRule = Joi.string()
 
 const schemas = {
   register: Joi.object({
-    fullName:     Joi.string().min(3).max(100).required(),
-    email:        Joi.string().email().required(),
-    mobile:       Joi.string().pattern(/^[6-9]\d{9}$/).required().messages({
+    fullName: Joi.string().min(3).max(100).required(),
+    email: Joi.string().email().required(),
+    mobile: Joi.string().pattern(/^[6-9]\d{9}$/).required().messages({
       'string.pattern.base': 'Enter a valid 10-digit Indian mobile number',
     }),
-    password:     passwordRule.required(),
+    password: passwordRule.required(),
     confirmPassword: Joi.string().valid(Joi.ref('password')).required().messages({
       'any.only': 'Passwords do not match',
     }),
     referralCode: Joi.string().optional().allow(''),
-    acceptTerms:  Joi.boolean().valid(true).required().messages({
+    acceptTerms: Joi.boolean().valid(true).required().messages({
       'any.only': 'You must accept the terms and conditions',
     }),
   }),
 
   verifyOTP: Joi.object({
     identifier: Joi.string().required(),
-    otp:        Joi.string().length(6).pattern(/^\d+$/).required(),
-    purpose:    Joi.string().valid('email_verify', 'mobile_verify', 'login', 'password_reset').required(),
+    otp: Joi.string().length(6).pattern(/^\d+$/).required(),
+    purpose: Joi.string().valid('email_verify', 'mobile_verify', 'login', 'password_reset').required(),
   }),
 
   login: Joi.object({
-    email:    Joi.string().email().required(),
+    email: Joi.string().email().required(),
     password: Joi.string().required(),
   }),
 
@@ -46,15 +46,19 @@ const schemas = {
   }),
 
   resetPassword: Joi.object({
-    token:           Joi.string().required(),
-    password:        passwordRule.required(),
+    token: Joi.string().required(),
+    password: passwordRule.required(),
     confirmPassword: Joi.string().valid(Joi.ref('password')).required(),
   }),
 
   changePassword: Joi.object({
     currentPassword: Joi.string().required(),
-    newPassword:     passwordRule.required(),
+    newPassword: passwordRule.required(),
     confirmPassword: Joi.string().valid(Joi.ref('newPassword')).required(),
+  }),
+
+  resendOTP: Joi.object({
+    email: Joi.string().email().required(),
   }),
 };
 

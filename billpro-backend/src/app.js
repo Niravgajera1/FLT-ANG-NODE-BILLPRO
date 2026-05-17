@@ -16,12 +16,11 @@ const app = express();
 app.use(helmet());
 app.use(mongoSanitize());  // Prevent NoSQL injection
 
-// ─── CORS ─────────────────────────────────────────────────────────────────────
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: true,
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-company-id'],
 }));
 
 // ─── Body Parsers ─────────────────────────────────────────────────────────────
