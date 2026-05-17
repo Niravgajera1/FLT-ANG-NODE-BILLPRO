@@ -1,8 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { AuthService } from '../auth.service';
 import { SignupService } from '../signup.service';
 import { ToastService } from '../toast.service';
 
@@ -14,10 +13,11 @@ import { ToastService } from '../toast.service';
 })
 export class SignupComponent {
   private fb = inject(FormBuilder);
-  private auth = inject(AuthService);
   private signupService = inject(SignupService);
   private router = inject(Router);
   private toast = inject(ToastService);
+
+  showLoading = signal(false);
 
   form: FormGroup = this.fb.group({
     fullName: ['', [Validators.required, Validators.minLength(3)]],
@@ -41,7 +41,7 @@ export class SignupComponent {
     return '';
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     this.form.markAllAsTouched();
 
     if (this.form.invalid || this.passwordCtrl.value !== this.confirmPasswordCtrl.value) {
@@ -52,14 +52,17 @@ export class SignupComponent {
     }
 
     const { fullName, email, phone, password } = this.form.value;
-    const success = this.signupService.register(fullName, email, phone, password);
+    this.showLoading.set(true);
+
+    const success = await this.signupService.register(fullName, email, phone, password);
+    this.showLoading.set(false);
 
     if (!success) {
-      this.toast.error('This email is already registered. Please login or use another email.');
+      this.toast.error('Signup failed. Please try again with a different email or check your network.');
       return;
     }
 
-    this.toast.success('OTP sent to your email/phone. Enter it to complete registration.');
+    this.toast.success('Registration successful. Enter the OTP to verify your account.');
     this.router.navigate(['/signup/verify']);
   }
 }

@@ -35,7 +35,7 @@ export class OtpVerificationComponent {
     this.otpCtrl.setValue(value, { emitEvent: false });
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
 
@@ -44,8 +44,9 @@ export class OtpVerificationComponent {
       return;
     }
 
-    if (!this.signupService.verifyOtp(this.form.value.otp)) {
-      this.toast.error('The OTP is incorrect. Please try again.');
+    const verified = await this.signupService.verifyOtp(this.form.value.otp);
+    if (!verified) {
+      this.toast.error('The OTP is incorrect or verification failed. Please try again.');
       return;
     }
 

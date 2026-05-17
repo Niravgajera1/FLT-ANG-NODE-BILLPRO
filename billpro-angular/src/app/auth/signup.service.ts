@@ -1,5 +1,8 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, Inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { AuthService } from './auth.service';
+import { API_URL } from '../app.config';
 
 export interface PendingSignup {
   fullName: string;
@@ -8,6 +11,15 @@ export interface PendingSignup {
   password: string;
   otp: string;
   otpSentAt: number;
+  identifier: string;
+  purpose: string;
+  serverData?: unknown;
+}
+
+interface SignupApiResponse {
+  success: boolean;
+  message: string;
+  data?: unknown;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -15,30 +27,74 @@ export class SignupService {
   private readonly _pending = signal<PendingSignup | null>(null);
   readonly pending = this._pending.asReadonly();
 
-  constructor(private auth: AuthService) {}
+  constructor(
+    private auth: AuthService,
+    private http: HttpClient,
+    @Inject(API_URL) private apiUrl: string
+  ) {}
 
-  register(fullName: string, email: string, phone: string, password: string): boolean {
+  async register(fullName: string, email: string, phone: string, password: string): Promise<boolean> {
     if (this.auth.emailExists(email)) {
       return false;
     }
 
-    const otp = this.generateOtp();
-    this._pending.set({
-      fullName,
-      email,
-      phone,
-      password,
-      otp,
-      otpSentAt: Date.now()
-    });
+    const payload = { fullName, email, phone, password };
+    try {
+      const response = await firstValueFrom(
+        this.http.post<SignupApiResponse>(`${this.apiUrl}/api/v1/auth/register`, payload)
+      );
 
-    console.log(`Signup OTP for ${email}: ${otp}`);
-    return true;
+      if (!response?.success) {
+        console.error('Signup failed:', response?.message);
+        return false;
+      }
+
+      const otp = this.generateOtp();
+      this._pending.set({
+        fullName,
+        email,
+        phone,
+        password,
+        otp,
+        otpSentAt: Date.now(),
+        identifier: email,
+        purpose: 'email_verify',
+        serverData: response.data
+      });
+
+      console.log(`Signup API succeeded for ${email}`);
+      return true;
+    } catch (error) {
+      console.error('Signup API error:', error);
+      return false;
+    }
   }
 
-  verifyOtp(code: string): boolean {
+  async verifyOtp(code: string): Promise<boolean> {
     const current = this._pending();
-    return !!current && current.otp === code.trim();
+    if (!current) {
+      return false;
+    }
+
+    try {
+      const response = await firstValueFrom(
+        this.http.post<SignupApiResponse>(`${this.apiUrl}/api/v1/auth/verify-otp`, {
+          identifier: current.identifier,
+          otp: code.trim(),
+          purpose: current.purpose
+        })
+      );
+
+      if (!response?.success) {
+        console.error('OTP verification failed:', response?.message);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('OTP verification error:', error);
+      return false;
+    }
   }
 
   resendOtp(): string | null {
