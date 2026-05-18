@@ -2,8 +2,21 @@
 const Vendor = require('./vendor.model');
 
 const generateVendorCode = async (companyId) => {
-  const count = await Vendor.countDocuments({ companyId });
-  return `VND-${String(count + 1).padStart(4, '0')}`;
+  const lastVendor = await Vendor.findOne({ companyId, vendorCode: { $regex: /^VND-\d+$/ } })
+    .sort({ vendorCode: -1 })
+    .select('vendorCode')
+    .lean();
+
+  let lastNumber = 0;
+  if (lastVendor && lastVendor.vendorCode) {
+    const match = lastVendor.vendorCode.match(/\d+/);
+    if (match) {
+      lastNumber = parseInt(match[0], 10);
+    }
+  }
+
+  const nextNumber = lastNumber + 1;
+  return `VND-${String(nextNumber).padStart(4, '0')}`;
 };
 
 const createVendor = async (companyId, data) => {

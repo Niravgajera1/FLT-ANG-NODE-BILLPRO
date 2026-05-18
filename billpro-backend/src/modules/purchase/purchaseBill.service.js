@@ -111,6 +111,9 @@ const createPurchaseBill = async (companyId, userId, data) => {
       company.invoiceSettings?.purchasePrefix
     );
 
+    const defaultAddress = vendor.billingAddress?.line1 ? vendor.billingAddress : vendor.registeredAddress;
+    const vendorAddress = data.vendorAddress || defaultAddress;
+
     const bill = new PurchaseBill({
       companyId,
       branchId:   data.branchId,
@@ -121,6 +124,7 @@ const createPurchaseBill = async (companyId, userId, data) => {
       vendorId:   vendor._id,
       vendorName: vendor.name,
       vendorGSTIN:vendor.gstin,
+      vendorAddress,
       vendorBillDate: data.vendorBillDate,
       billDate:   data.billDate || new Date(),
       dueDate:    data.dueDate,

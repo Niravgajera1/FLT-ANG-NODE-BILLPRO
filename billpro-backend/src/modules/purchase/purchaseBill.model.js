@@ -115,12 +115,10 @@ purchaseBillSchema.index({ companyId: 1, status: 1 });
 purchaseBillSchema.index({ companyId: 1, billNumber: 1 }, { unique: true });
 purchaseBillSchema.index({ companyId: 1, dueDate: 1 });
 
-// ─── Pre-save: calculate balanceDue ──────────────────────────────────────────
-purchaseBillSchema.pre('save', function (next) {
+purchaseBillSchema.pre('save', function () {
   this.balanceDue = Math.max(0, this.grandTotal - this.paidAmount);
   if (this.paidAmount >= this.grandTotal) this.status = BILL_STATUS.PAID;
   else if (this.paidAmount > 0) this.status = BILL_STATUS.PARTIALLY_PAID;
-  next();
 });
 
 const PurchaseBill = mongoose.model('PurchaseBill', purchaseBillSchema);
