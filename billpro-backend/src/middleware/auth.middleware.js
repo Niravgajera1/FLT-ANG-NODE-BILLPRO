@@ -42,9 +42,9 @@ const authenticate = async (req, res, next) => {
  * Attaches companyId to req from header or JWT payload
  */
 const attachCompany = (req, res, next) => {
-  const companyId = req.query.companyId || req.headers['x-company-id'] || req.user?.activeCompanyId;
+  const companyId = req.params?.companyId || req.body?.companyId || req.query.companyId || req.headers['x-company-id'] || req.user?.activeCompanyId;
   if (!companyId) {
-    return res.status(400).json({ success: false, message: 'Company context required in query ?companyId=...' });
+    return res.status(400).json({ success: false, message: 'Company context required in params, body, query or headers' });
   }
   req.companyId = companyId;
   next();

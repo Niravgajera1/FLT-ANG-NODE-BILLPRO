@@ -71,10 +71,25 @@ const deleteCustomer = async (req, res, next) => {
     }
 };
 
+const toggleCustomerStatus = async (req, res, next) => {
+    try {
+        const companyId = getCompanyContext(req);
+        if (!companyId) {
+            return res.status(400).json({ success: false, message: 'Company context required' });
+        }
+        const customer = await customerService.toggleCustomerStatus(companyId, req.params.id);
+        const statusMsg = customer.isActive ? 'Customer activated successfully' : 'Customer deactivated successfully';
+        return sendSuccess(res, customer, statusMsg);
+    } catch (e) {
+        next(e);
+    }
+};
+
 module.exports = {
     createCustomer,
     getCustomers,
     getCustomerById,
     updateCustomer,
-    deleteCustomer
+    deleteCustomer,
+    toggleCustomerStatus
 };

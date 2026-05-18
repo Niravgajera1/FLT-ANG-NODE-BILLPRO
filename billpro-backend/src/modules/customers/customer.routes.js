@@ -16,4 +16,7 @@ router.route('/:id')
   .put(authorize(PERMISSIONS.MANAGE_VENDORS_CUSTOMERS), ctrl.updateCustomer)
   .delete(authorize(PERMISSIONS.MANAGE_VENDORS_CUSTOMERS), ctrl.deleteCustomer);
 
+router.route('/:id/toggle-status')
+  .patch(authorize(PERMISSIONS.MANAGE_VENDORS_CUSTOMERS), ctrl.toggleCustomerStatus);
+
 module.exports = router;

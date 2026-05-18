@@ -2,8 +2,21 @@ const mongoose = require('mongoose');
 const Customer = require('./customer.model');
 
 const generateCustomerCode = async (companyId) => {
-  const count = await Customer.countDocuments({ companyId });
-  return `CUS-${String(count + 1).padStart(4, '0')}`;
+  const lastCustomer = await Customer.findOne({ companyId, customerCode: { $regex: /^CUS-\d+$/ } })
+    .sort({ customerCode: -1 })
+    .select('customerCode')
+    .lean();
+
+  let lastNumber = 0;
+  if (lastCustomer && lastCustomer.customerCode) {
+    const match = lastCustomer.customerCode.match(/\d+/);
+    if (match) {
+      lastNumber = parseInt(match[0], 10);
+    }
+  }
+
+  const nextNumber = lastNumber + 1;
+  return `CUS-${String(nextNumber).padStart(4, '0')}`;
 };
 
 const createCustomer = async (companyId, data) => {
@@ -29,7 +42,7 @@ const createCustomer = async (companyId, data) => {
   return created;
 };
 
-const getCustomers = async (companyId, { page = 1, limit = 20, search, customerType, isActive = true }) => {
+const getCustomers = async (companyId, { page = 1, limit = 20, search, customerType, isActive }) => {
   const filter = { companyId };
   if (isActive !== undefined) filter.isActive = isActive === 'true' || isActive === true;
   if (customerType) filter.customerType = customerType;
@@ -82,4 +95,12 @@ const deleteCustomer = async (companyId, customerId) => {
   return Customer.findOneAndUpdate({ _id: customerId, companyId }, { isActive: false }, { new: true });
 };
 
-module.exports = { createCustomer, getCustomers, getCustomerById, updateCustomer, deleteCustomer };
+const toggleCustomerStatus = async (companyId, customerId) => {
+  const customer = await Customer.findOne({ _id: customerId, companyId });
+  if (!customer) throw Object.assign(new Error('Customer not found'), { statusCode: 404 });
+  customer.isActive = !customer.isActive;
+  await customer.save();
+  return customer;
+};
+
+module.exports = { createCustomer, getCustomers, getCustomerById, updateCustomer, deleteCustomer, toggleCustomerStatus };

@@ -18,6 +18,8 @@ router.route('/:id')
   .get(authorize(PERMISSIONS.CREATE_SALES_INVOICE, PERMISSIONS.VIEW_REPORTS), ctrl.getSalesInvoiceById)
   .delete(authorize(PERMISSIONS.DELETE_BILLS), auditMiddleware('sales', 'DELETE'), ctrl.voidSalesInvoice);
 
+router.get('/:id/pdf', authorize(PERMISSIONS.CREATE_SALES_INVOICE, PERMISSIONS.VIEW_REPORTS), ctrl.downloadSalesInvoicePDF);
+
 router.post('/:id/convert', authorize(PERMISSIONS.CREATE_SALES_INVOICE), ctrl.convertProformaToInvoice);
 
 module.exports = router;

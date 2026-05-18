@@ -43,7 +43,42 @@ const getReceivablesAging = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+const Company = require('../company/company.model');
+const SalesInvoice = require('./salesInvoice.model');
+const { generateInvoicePDF } = require('../../utils/pdfGenerator');
+
+const downloadSalesInvoicePDF = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const companyId = req.companyId;
+
+    const invoice = await SalesInvoice.findOne({ _id: id, companyId }).populate('customerId');
+    if (!invoice) {
+      return res.status(404).json({ success: false, message: 'Invoice not found' });
+    }
+
+    const company = await Company.findById(companyId);
+    if (!company) {
+      return res.status(404).json({ success: false, message: 'Company not found' });
+    }
+
+    const customer = invoice.customerId;
+    if (!customer) {
+      return res.status(404).json({ success: false, message: 'Customer associated with this invoice was not found' });
+    }
+
+    const pdfBuffer = await generateInvoicePDF(invoice, company, customer);
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="Invoice-${invoice.invoiceNumber}.pdf"`);
+    return res.send(pdfBuffer);
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   createSalesInvoice, getSalesInvoices, getSalesInvoiceById,
   voidSalesInvoice, convertProformaToInvoice, getReceivablesAging,
+  downloadSalesInvoicePDF,
 };

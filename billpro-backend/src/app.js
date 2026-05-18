@@ -4,6 +4,7 @@ const cors = require('cors');
 const compression = require('compression');
 const morgan = require('morgan');
 const mongoSanitize = require('express-mongo-sanitize');
+const path = require('path');
 
 const routes = require('./routes');
 const errorHandler = require('./middleware/errorHandler');
@@ -26,6 +27,9 @@ app.use(cors({
 // ─── Body Parsers ─────────────────────────────────────────────────────────────
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// ─── Static Files ─────────────────────────────────────────────────────────────
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // ─── Compression ──────────────────────────────────────────────────────────────
 app.use(compression());

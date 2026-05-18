@@ -1,5 +1,6 @@
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const { ALLOWED_MIME_TYPES } = require('../config/constants');
 
 // Store in memory (files will be uploaded to S3/cloud storage in service layer)
@@ -34,4 +35,25 @@ const importUpload = multer({
   fileFilter: fileFilter(ALLOWED_MIME_TYPES.IMPORTS),
 });
 
-module.exports = { attachmentUpload, logoUpload, importUpload };
+// For item images (stored locally in uploads/Item — max 2MB)
+const itemStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, '../../uploads/Item');
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'item-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const itemUpload = multer({
+  storage: itemStorage,
+  limits: { fileSize: 2 * 1024 * 1024 },
+  fileFilter: fileFilter(ALLOWED_MIME_TYPES.IMAGES),
+});
+
+module.exports = { attachmentUpload, logoUpload, importUpload, itemUpload };

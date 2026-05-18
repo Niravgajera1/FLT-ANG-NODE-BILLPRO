@@ -76,7 +76,8 @@ const createSalesInvoice = async (companyId, userId, data) => {
 
     // Determine supply type
     const isExport = data.invoiceType === INVOICE_TYPES.EXPORT_INVOICE || customer.customerType === 'export';
-    const customerStateCode = customer.addresses?.find(a => a.isDefault)?.stateCode || data.placeOfSupply;
+    const defaultAddress = customer.addresses?.find(a => a.isDefault) || customer.addresses?.[0];
+    const customerStateCode = defaultAddress?.stateCode || data.placeOfSupply;
     const supplyType = getSupplyType(company.registeredAddress?.stateCode, customerStateCode, isExport);
 
     const processedItems = processLineItems(data.lineItems, supplyType, company.gstType);
@@ -101,8 +102,8 @@ const createSalesInvoice = async (companyId, userId, data) => {
       customerId:  customer._id,
       customerName:customer.name,
       customerGSTIN: customer.gstin,
-      billingAddress:  data.billingAddress  || customer.addresses?.find(a => a.isDefault),
-      shippingAddress: data.shippingAddress || customer.addresses?.find(a => a.isDefault),
+      billingAddress:  data.billingAddress  || defaultAddress,
+      shippingAddress: data.shippingAddress || defaultAddress,
       invoiceDate: data.invoiceDate || new Date(),
       dueDate:     data.dueDate,
       supplyType,
@@ -172,7 +173,7 @@ const getSalesInvoices = async (companyId, query = {}) => {
     salespersonId,
   } = query;
 
-  const filter = { companyId, isVoid: false };
+  const filter = { companyId, isVoid: { $ne: true } };
   if (status)      filter.status      = status;
   if (customerId)  filter.customerId  = customerId;
   if (invoiceType) filter.invoiceType = invoiceType;
