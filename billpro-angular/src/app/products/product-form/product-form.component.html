@@ -2,69 +2,200 @@
   <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
     <div>
       <h1 class="text-3xl font-semibold text-slate-900">{{ pageTitle }}</h1>
-      <p class="mt-2 text-sm text-slate-500">Enter product details and save to return to the product list.</p>
+      <p class="mt-2 text-sm text-slate-500">Create inventory items using the GST, stock, pricing, and company fields required by the API.</p>
     </div>
-    <button routerLink="/products" class="inline-flex items-center rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
+    <button routerLink="/products" class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
       Back to Product List
     </button>
   </div>
 
-  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-8 rounded-[2rem] border border-gray-200 bg-white p-8 shadow-xl shadow-slate-200/40">
-    <div class="rounded-3xl bg-slate-50 p-6">
-      <div class="mb-6">
-        <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Product information</p>
-      </div>
-      <div class="grid gap-6 md:grid-cols-2">
-        <label class="space-y-3">
-          <span class="text-sm font-medium text-slate-700">Product Name</span>
-          <input formControlName="name" type="text" placeholder="Enter product name" class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100" />
-        </label>
-        <label class="space-y-3">
-          <span class="text-sm font-medium text-slate-700">SKU</span>
-          <input formControlName="sku" type="text" placeholder="Product SKU" class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100" />
-        </label>
-        <label class="space-y-3">
-          <span class="text-sm font-medium text-slate-700">Category</span>
-          <input formControlName="category" type="text" placeholder="Category" class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100" />
-        </label>
-        <label class="space-y-3">
-          <span class="text-sm font-medium text-slate-700">Price</span>
-          <input formControlName="price" type="text" placeholder="$0.00" class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100" />
-        </label>
-      </div>
+  @if (isLoading()) {
+    <div class="rounded-2xl border border-gray-200 bg-white p-10 text-center text-sm font-medium text-slate-500 shadow-xl shadow-slate-200/40">
+      Loading product details...
     </div>
-
-    <div class="rounded-3xl bg-slate-50 p-6">
-      <div class="mb-6">
-        <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Inventory details</p>
+  } @else {
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-xl shadow-slate-200/40">
+    <section class="rounded-xl bg-slate-50 p-5">
+      <div class="mb-5">
+        <p class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Item information</p>
       </div>
-      <div class="grid gap-6 md:grid-cols-2">
-        <label class="space-y-3">
-          <span class="text-sm font-medium text-slate-700">Stock</span>
-          <input formControlName="stock" type="number" min="0" class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100" />
+      <div class="grid gap-5 md:grid-cols-2">
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">Name</span>
+          <input formControlName="name" type="text" placeholder="Premium Wireless Mouse" class="field" />
         </label>
-        <label class="space-y-3">
-          <span class="text-sm font-medium text-slate-700">Supplier</span>
-          <input formControlName="supplier" type="text" placeholder="Supplier name" class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100" />
-        </label>
-        <label class="space-y-3 md:col-span-2">
-          <span class="text-sm font-medium text-slate-700">Status</span>
-          <select formControlName="status" class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100">
-            <option value="In stock">In stock</option>
-            <option value="Low stock">Low stock</option>
-            <option value="Out of stock">Out of stock</option>
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">Item Type</span>
+          <select formControlName="itemType" class="field">
+            <option value="product">Product</option>
+            <option value="service">Service</option>
           </select>
         </label>
+        <label class="space-y-2 md:col-span-2">
+          <span class="text-sm font-medium text-slate-700">Description</span>
+          <textarea formControlName="description" rows="3" placeholder="Ergonomic 2.4GHz wireless mouse..." class="field resize-none"></textarea>
+        </label>
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">Category</span>
+          <input formControlName="category" type="text" placeholder="Electronics" class="field" />
+        </label>
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">Brand</span>
+          <input formControlName="brand" type="text" placeholder="Logitech" class="field" />
+        </label>
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">Unit</span>
+          <select formControlName="unit" class="field">
+            <option value="pcs">pcs</option>
+            <option value="kg">kg</option>
+            <option value="ltr">ltr</option>
+            <option value="mtr">mtr</option>
+            <option value="box">box</option>
+          </select>
+        </label>
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">Image</span>
+          <input type="file" accept="image/*" (change)="onImageSelected($event)" class="field file:mr-4 file:rounded-lg file:border-0 file:bg-primary-50 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-primary-700" />
+          @if (selectedImageName()) {
+            <span class="block text-xs text-slate-500">{{ selectedImageName() }}</span>
+          }
+        </label>
       </div>
-    </div>
+    </section>
+
+    <section class="rounded-xl bg-slate-50 p-5">
+      <div class="mb-5">
+        <p class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Pricing and GST</p>
+      </div>
+      <div class="grid gap-5 md:grid-cols-3">
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">Selling Price</span>
+          <input formControlName="sellingPrice" type="number" min="0" class="field" />
+        </label>
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">Purchase Price</span>
+          <input formControlName="purchasePrice" type="number" min="0" class="field" />
+        </label>
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">MRP</span>
+          <input formControlName="mrp" type="number" min="0" class="field" />
+        </label>
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">HSN Code</span>
+          <input formControlName="hsnCode" type="text" placeholder="84716060" class="field" />
+        </label>
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">SAC Code</span>
+          <input formControlName="sacCode" type="text" class="field" />
+        </label>
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">GST Rate</span>
+          <input formControlName="gstRate" type="number" min="0" class="field" />
+        </label>
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">CESS Rate</span>
+          <input formControlName="cessRate" type="number" min="0" class="field" />
+        </label>
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">ITC Eligibility</span>
+          <select formControlName="itcEligibility" class="field">
+            <option value="full">Full</option>
+            <option value="partial">Partial</option>
+            <option value="none">None</option>
+            <option value="ineligible">Ineligible</option>
+          </select>
+        </label>
+        <div class="flex flex-wrap items-center gap-5 pt-7">
+          <label class="inline-flex items-center gap-2 text-sm font-medium text-slate-700">
+            <input formControlName="priceInclGST" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
+            Price includes GST
+          </label>
+          <label class="inline-flex items-center gap-2 text-sm font-medium text-slate-700">
+            <input formControlName="isExempt" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
+            GST exempt
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <section class="rounded-xl bg-slate-50 p-5">
+      <div class="mb-5">
+        <p class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Inventory</p>
+      </div>
+      <div class="grid gap-5 md:grid-cols-3">
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">Opening Stock</span>
+          <input formControlName="openingStock" type="number" min="0" class="field" />
+        </label>
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">Current Stock</span>
+          <input formControlName="currentStock" type="number" min="0" class="field" />
+        </label>
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">Reorder Level</span>
+          <input formControlName="reorderLevel" type="number" min="0" class="field" />
+        </label>
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">Reorder Quantity</span>
+          <input formControlName="reorderQuantity" type="number" min="0" class="field" />
+        </label>
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">Valuation Method</span>
+          <select formControlName="valuationMethod" class="field">
+            <option value="WAC">WAC</option>
+            <option value="FIFO">FIFO</option>
+            <option value="LIFO">LIFO</option>
+          </select>
+        </label>
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">Average Cost</span>
+          <input formControlName="avgCost" type="number" min="0" class="field" />
+        </label>
+        <label class="space-y-2 md:col-span-2">
+          <span class="text-sm font-medium text-slate-700">Warehouse Location</span>
+          <input formControlName="warehouseLocation" type="text" placeholder="Aisle 4, Shelf B" class="field" />
+        </label>
+        <div class="flex flex-wrap items-center gap-5 pt-7">
+          <label class="inline-flex items-center gap-2 text-sm font-medium text-slate-700">
+            <input formControlName="trackInventory" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
+            Track inventory
+          </label>
+          <label class="inline-flex items-center gap-2 text-sm font-medium text-slate-700">
+            <input formControlName="batchTracking" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
+            Batch tracking
+          </label>
+          <label class="inline-flex items-center gap-2 text-sm font-medium text-slate-700">
+            <input formControlName="isActive" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
+            Active
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <section class="rounded-xl bg-slate-50 p-5">
+      <div class="mb-5">
+        <p class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Company and notes</p>
+      </div>
+      <div class="grid gap-5 md:grid-cols-2">
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">Company ID</span>
+          <input formControlName="companyId" type="text" placeholder="6a0968bc682cd26d16749d9c" class="field" />
+        </label>
+        <label class="space-y-2 md:col-span-2">
+          <span class="text-sm font-medium text-slate-700">Notes</span>
+          <textarea formControlName="notes" rows="3" placeholder="Fragile electronic item. Handle with care." class="field resize-none"></textarea>
+        </label>
+      </div>
+    </section>
 
     <div class="flex flex-col gap-3 border-t border-gray-200 pt-4 sm:flex-row sm:justify-end">
-      <button type="button" (click)="cancel()" class="rounded-2xl border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+      <button type="button" (click)="cancel()" class="rounded-lg border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
         Cancel
       </button>
-      <button type="submit" class="rounded-2xl bg-primary-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-primary-200/30 transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60" [disabled]="form.invalid">
-        {{ submitText }}
+      <button type="submit" class="rounded-lg bg-primary-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-primary-200/30 transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60" [disabled]="form.invalid || isSubmitting()">
+        {{ isSubmitting() ? 'Saving...' : submitText }}
       </button>
     </div>
   </form>
+  }
 </div>
