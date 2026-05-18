@@ -1,1 +1,3 @@
-/* Product form page styles */
+.field {
+  @apply w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100;
+}

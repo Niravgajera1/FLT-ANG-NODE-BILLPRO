@@ -2,58 +2,245 @@
   <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
     <div>
       <h1 class="text-3xl font-semibold text-slate-900">{{ pageTitle }}</h1>
-      <p class="mt-2 text-sm text-slate-500">Fill in invoice details, then save to return to the invoice list.</p>
+      <p class="mt-2 text-sm text-slate-500">Create a sales invoice with customer, supply, payment, and line item details.</p>
     </div>
-    <button routerLink="/create-invoice" class="inline-flex items-center rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
+    <button routerLink="/create-invoice" class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
       Back to Invoice List
     </button>
   </div>
 
-  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-8 rounded-[2rem] border border-gray-200 bg-white p-8 shadow-xl shadow-slate-200/40">
-    <div class="rounded-3xl bg-slate-50 p-6">
-      <div class="mb-6">
-        <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Invoice details</p>
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-xl shadow-slate-200/40">
+    <section class="rounded-xl bg-slate-50 p-5">
+      <div class="mb-5">
+        <p class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Invoice details</p>
       </div>
-      <div class="grid gap-6 md:grid-cols-2">
-        <label class="space-y-3">
+      <div class="grid gap-5 md:grid-cols-3">
+        <label class="space-y-2">
           <span class="text-sm font-medium text-slate-700">Customer</span>
-          <input formControlName="customer" type="text" placeholder="Customer name" class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100" />
-        </label>
-        <label class="space-y-3">
-          <span class="text-sm font-medium text-slate-700">Amount</span>
-          <input formControlName="amount" type="text" placeholder="$0.00" class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100" />
-        </label>
-        <label class="space-y-3">
-          <span class="text-sm font-medium text-slate-700">Due Date</span>
-          <input formControlName="dueDate" type="date" class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100" />
-        </label>
-        <label class="space-y-3">
-          <span class="text-sm font-medium text-slate-700">Status</span>
-          <select formControlName="status" class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100">
-            <option value="Due">Due</option>
-            <option value="Paid">Paid</option>
-            <option value="Overdue">Overdue</option>
+          <select formControlName="customerId" class="field">
+            <option value="">Select customer</option>
+            <option *ngFor="let customer of customerOptions()" [value]="customer.id">{{ customer.label }}</option>
           </select>
         </label>
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">Invoice Type</span>
+          <select formControlName="invoiceType" class="field">
+            <option value="tax_invoice">Tax Invoice</option>
+            <option value="bill_of_supply">Bill of Supply</option>
+            <option value="export_invoice">Export Invoice</option>
+          </select>
+        </label>
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">Customer PO Number</span>
+          <input formControlName="customerPONumber" type="text" placeholder="PO-998877" class="field" />
+        </label>
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">Invoice Date</span>
+          <input formControlName="invoiceDate" type="date" class="field" />
+        </label>
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">Due Date</span>
+          <input formControlName="dueDate" type="date" class="field" />
+        </label>
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">Payment Terms</span>
+          <input formControlName="paymentTerms" type="text" placeholder="Net 30" class="field" />
+        </label>
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">Place of Supply</span>
+          <input formControlName="placeOfSupply" type="text" placeholder="Gujarat" class="field" />
+        </label>
+        <label class="space-y-2 md:col-span-2">
+          <span class="text-sm font-medium text-slate-700">Dispatch From</span>
+          <input formControlName="dispatchFrom" type="text" placeholder="Warehouse A" class="field" />
+        </label>
       </div>
-    </div>
+    </section>
 
-    <div class="rounded-3xl bg-slate-50 p-6">
-      <div class="mb-6">
-        <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Notes</p>
+    <section class="rounded-xl bg-slate-50 p-5">
+      <div class="mb-5">
+        <p class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Addresses</p>
       </div>
-      <label class="space-y-3">
-        <span class="text-sm font-medium text-slate-700">Invoice notes</span>
-        <textarea formControlName="notes" rows="5" placeholder="Optional notes" class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100"></textarea>
-      </label>
-    </div>
+      <div class="grid gap-5 lg:grid-cols-2">
+        <div formGroupName="billingAddress" class="rounded-xl border border-slate-200 bg-white p-4">
+          <p class="mb-4 text-sm font-semibold text-slate-800">Billing Address</p>
+          <div class="grid gap-4 md:grid-cols-2">
+            <label class="space-y-2">
+              <span class="text-sm font-medium text-slate-700">Label</span>
+              <input formControlName="label" type="text" class="field" />
+            </label>
+            <label class="space-y-2">
+              <span class="text-sm font-medium text-slate-700">Country</span>
+              <input formControlName="country" type="text" class="field" />
+            </label>
+            <label class="space-y-2 md:col-span-2">
+              <span class="text-sm font-medium text-slate-700">Line 1</span>
+              <input formControlName="line1" type="text" class="field" />
+            </label>
+            <label class="space-y-2 md:col-span-2">
+              <span class="text-sm font-medium text-slate-700">Line 2</span>
+              <input formControlName="line2" type="text" class="field" />
+            </label>
+            <label class="space-y-2">
+              <span class="text-sm font-medium text-slate-700">City</span>
+              <input formControlName="city" type="text" class="field" />
+            </label>
+            <label class="space-y-2">
+              <span class="text-sm font-medium text-slate-700">State</span>
+              <input formControlName="state" type="text" class="field" />
+            </label>
+            <label class="space-y-2">
+              <span class="text-sm font-medium text-slate-700">State Code</span>
+              <input formControlName="stateCode" type="text" class="field" />
+            </label>
+            <label class="space-y-2">
+              <span class="text-sm font-medium text-slate-700">PIN Code</span>
+              <input formControlName="pinCode" type="text" class="field" />
+            </label>
+          </div>
+        </div>
+
+        <div formGroupName="shippingAddress" class="rounded-xl border border-slate-200 bg-white p-4">
+          <p class="mb-4 text-sm font-semibold text-slate-800">Shipping Address</p>
+          <div class="grid gap-4 md:grid-cols-2">
+            <label class="space-y-2">
+              <span class="text-sm font-medium text-slate-700">Label</span>
+              <input formControlName="label" type="text" class="field" />
+            </label>
+            <label class="space-y-2">
+              <span class="text-sm font-medium text-slate-700">Country</span>
+              <input formControlName="country" type="text" class="field" />
+            </label>
+            <label class="space-y-2 md:col-span-2">
+              <span class="text-sm font-medium text-slate-700">Line 1</span>
+              <input formControlName="line1" type="text" class="field" />
+            </label>
+            <label class="space-y-2 md:col-span-2">
+              <span class="text-sm font-medium text-slate-700">Line 2</span>
+              <input formControlName="line2" type="text" class="field" />
+            </label>
+            <label class="space-y-2">
+              <span class="text-sm font-medium text-slate-700">City</span>
+              <input formControlName="city" type="text" class="field" />
+            </label>
+            <label class="space-y-2">
+              <span class="text-sm font-medium text-slate-700">State</span>
+              <input formControlName="state" type="text" class="field" />
+            </label>
+            <label class="space-y-2">
+              <span class="text-sm font-medium text-slate-700">State Code</span>
+              <input formControlName="stateCode" type="text" class="field" />
+            </label>
+            <label class="space-y-2">
+              <span class="text-sm font-medium text-slate-700">PIN Code</span>
+              <input formControlName="pinCode" type="text" class="field" />
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="rounded-xl bg-slate-50 p-5">
+      <div class="mb-5 flex items-center justify-between gap-4">
+        <p class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Line items</p>
+        <button type="button" (click)="addLineItem()" class="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-700">
+          Add Item
+        </button>
+      </div>
+
+      <div formArrayName="lineItems" class="space-y-5">
+        <div *ngFor="let item of lineItems.controls; let i = index" [formGroupName]="i" class="rounded-xl border border-slate-200 bg-white p-4">
+          <div class="mb-4 flex items-center justify-between">
+            <p class="text-sm font-semibold text-slate-800">Item {{ i + 1 }}</p>
+            <button type="button" (click)="removeLineItem(i)" aria-label="Remove line item" title="Remove line item" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition hover:bg-red-100">
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 7h12m-9 0V5a1 1 0 011-1h4a1 1 0 011 1v2m2 0l-.67 11.34A2 2 0 0115.33 20H8.67a2 2 0 01-1.99-1.66L6 7zm4 4v5m4-5v5"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="grid gap-4 md:grid-cols-4">
+            <label class="space-y-2 md:col-span-2">
+              <span class="text-sm font-medium text-slate-700">Product</span>
+              <select formControlName="itemId" class="field" (change)="onProductSelected(i)">
+                <option value="">Select product</option>
+                <option *ngFor="let product of productOptions()" [value]="product.id">{{ product.label }}</option>
+              </select>
+            </label>
+            <label class="space-y-2 md:col-span-2">
+              <span class="text-sm font-medium text-slate-700">Item Name</span>
+              <input formControlName="itemName" type="text" placeholder="Premium Wireless Mouse" class="field" readonly />
+            </label>
+            <label class="space-y-2">
+              <span class="text-sm font-medium text-slate-700">Quantity</span>
+              <input formControlName="quantity" type="number" min="1" class="field" />
+            </label>
+            <label class="space-y-2">
+              <span class="text-sm font-medium text-slate-700">Unit Price</span>
+              <input formControlName="unitPrice" type="number" min="0" class="field" />
+            </label>
+            <label class="space-y-2">
+              <span class="text-sm font-medium text-slate-700">Unit</span>
+              <select formControlName="unit" class="field">
+                <option value="pcs">pcs</option>
+                <option value="kg">kg</option>
+                <option value="ltr">ltr</option>
+                <option value="mtr">mtr</option>
+                <option value="box">box</option>
+              </select>
+            </label>
+            <label class="space-y-2">
+              <span class="text-sm font-medium text-slate-700">GST Rate</span>
+              <input formControlName="gstRate" type="number" min="0" class="field" />
+            </label>
+            <label class="space-y-2">
+              <span class="text-sm font-medium text-slate-700">Discount %</span>
+              <input formControlName="discountPercent" type="number" min="0" class="field" />
+            </label>
+            <label class="space-y-2">
+              <span class="text-sm font-medium text-slate-700">Flat Discount</span>
+              <input formControlName="discountFlat" type="number" min="0" class="field" />
+            </label>
+            <div class="flex items-end">
+              <div class="w-full rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3">
+                <p class="text-xs font-semibold uppercase tracking-[0.12em] text-emerald-700">Line total</p>
+                <p class="mt-1 text-sm font-bold text-emerald-800">{{ lineTotal($any(item)) | currency:'INR':'symbol':'1.0-2' }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-5 flex justify-end">
+        <div class="rounded-xl border border-primary-100 bg-primary-50 px-5 py-4 text-right">
+          <p class="text-xs font-semibold uppercase tracking-[0.14em] text-primary-700">Invoice total</p>
+          <p class="mt-1 text-2xl font-bold text-primary-800">{{ invoiceTotal() | currency:'INR':'symbol':'1.0-2' }}</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="rounded-xl bg-slate-50 p-5">
+      <div class="mb-5">
+        <p class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Notes and terms</p>
+      </div>
+      <div class="grid gap-5 md:grid-cols-2">
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">Notes</span>
+          <textarea formControlName="notes" rows="4" placeholder="Thank you for your business!" class="field resize-none"></textarea>
+        </label>
+        <label class="space-y-2">
+          <span class="text-sm font-medium text-slate-700">Terms and Conditions</span>
+          <textarea formControlName="termsAndConditions" rows="4" placeholder="Payment is strictly due within 30 days..." class="field resize-none"></textarea>
+        </label>
+      </div>
+    </section>
 
     <div class="flex flex-col gap-3 border-t border-gray-200 pt-4 sm:flex-row sm:justify-end">
-      <button type="button" (click)="cancel()" class="rounded-2xl border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+      <button type="button" (click)="cancel()" class="rounded-lg border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
         Cancel
       </button>
-      <button type="submit" class="rounded-2xl bg-primary-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-primary-200/30 transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60" [disabled]="form.invalid">
-        {{ submitText }}
+      <button type="submit" class="rounded-lg bg-primary-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-primary-200/30 transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60" [disabled]="form.invalid || isSubmitting()">
+        {{ isSubmitting() ? 'Saving...' : submitText }}
       </button>
     </div>
   </form>

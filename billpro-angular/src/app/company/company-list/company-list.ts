@@ -1,7 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { ToastService } from '../../auth/toast.service';
 import { ConfirmService } from '../../ui/confirm.service';
@@ -51,6 +51,18 @@ interface CustomerResponse {
   };
 }
 
+interface CustomerToggleResponse {
+  success: boolean;
+  message: string;
+  data?: Partial<Customer>;
+}
+
+interface StoredAuthUser {
+  companies?: Array<{
+    companyId?: unknown;
+  }>;
+}
+
 @Component({
   selector: 'app-company-list',
   standalone: true,
@@ -70,6 +82,7 @@ export class CompanyList implements OnInit {
   isLoading = signal(false);
   searchTerm = signal('');
   totalCustomers = signal(0);
+  togglingCustomerIds = signal<string[]>([]);
 
   filteredCustomers = computed(() => {
     const search = this.searchTerm().trim().toLowerCase();
@@ -149,6 +162,61 @@ export class CompanyList implements OnInit {
     this.toast.success('Customer deleted successfully.');
   }
 
+  async toggleCompanyStatus(customer: Customer): Promise<void> {
+    if (this.isStatusToggling(customer._id)) {
+      return;
+    }
+
+    const token = this.auth.getAuthToken();
+    if (!token) {
+      this.toast.error('Authentication token missing. Please login again.');
+      return;
+    }
+
+    const companyId = this.getCompanyId();
+    if (!companyId) {
+      this.toast.error('Company ID missing. Please complete company setup.');
+      return;
+    }
+
+    this.togglingCustomerIds.update(ids => [...ids, customer._id]);
+    try {
+      const response = await firstValueFrom(
+        this.http.patch<CustomerToggleResponse>(
+          `${this.apiUrl}/api/v1/customers/${customer._id}/toggle-status`,
+          {},
+          {
+            headers: new HttpHeaders({ Authorization: `Bearer ${token}` }),
+            params: new HttpParams().set('companyId', companyId)
+          }
+        )
+      );
+
+      if (!response?.success) {
+        this.toast.error(response?.message || 'Could not update customer status.');
+        return;
+      }
+
+      const nextStatus = typeof response.data?.isActive === 'boolean'
+        ? response.data.isActive
+        : !customer.isActive;
+
+      this.customers.update(list =>
+        list.map(item => item._id === customer._id ? { ...item, isActive: nextStatus } : item)
+      );
+      this.toast.success(response.message || `Customer ${nextStatus ? 'activated' : 'deactivated'} successfully.`);
+    } catch (error) {
+      console.error('Unable to toggle customer status', error);
+      this.toast.error(this.getApiMessage(error, 'Could not update customer status.'));
+    } finally {
+      this.togglingCustomerIds.update(ids => ids.filter(id => id !== customer._id));
+    }
+  }
+
+  isStatusToggling(id: string): boolean {
+    return this.togglingCustomerIds().includes(id);
+  }
+
   getAddressLabel(customer: Customer): string {
     const address = customer.addresses?.find(item => item.isDefault) ?? customer.addresses?.[0];
     if (!address) {
@@ -171,5 +239,25 @@ export class CompanyList implements OnInit {
     }
 
     return fallback;
+  }
+
+  private getCompanyId(): string {
+    try {
+      const raw = localStorage.getItem('billflow_auth_user');
+      const user = raw ? JSON.parse(raw) as StoredAuthUser : null;
+      return this.normalizeId(user?.companies?.[0]?.companyId);
+    } catch {
+      return '';
+    }
+  }
+
+  private normalizeId(value: unknown): string {
+    if (typeof value === 'string') return value;
+    if (value && typeof value === 'object') {
+      const record = value as Record<string, unknown>;
+      const id = record['_id'] ?? record['id'] ?? record['value'];
+      return typeof id === 'string' ? id : '';
+    }
+    return '';
   }
 }
