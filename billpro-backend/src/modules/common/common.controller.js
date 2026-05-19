@@ -44,7 +44,16 @@ const getOptionsList = async (req, res, next) => {
     }
 
     if (type === 1) {
-      const items = await Item.find({ companyId, isActive: true }).select('_id name').lean();
+      const query = { companyId, isActive: true };
+      if (req.query.forType !== undefined) {
+        const forType = parseInt(req.query.forType, 10);
+        if (forType === 1) {
+          query.is_selling = true;
+        } else if (forType === 2) {
+          query.is_selling = false;
+        }
+      }
+      const items = await Item.find(query).select('_id name').lean();
       return sendSuccess(res, items, 'Items list fetched successfully');
     } else if (type === 2) {
       const customers = await Customer.find({ companyId }).select('_id name').lean();

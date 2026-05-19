@@ -44,6 +44,7 @@ const itemSchema = new mongoose.Schema({
 
   // ── Status ────────────────────────────────────────────────────────────────
   isActive: { type: Boolean, default: true },
+  is_selling: { type: Boolean, default: true },
   image: { type: String },
   notes: { type: String },
 

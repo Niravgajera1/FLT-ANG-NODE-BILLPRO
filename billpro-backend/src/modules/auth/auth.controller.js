@@ -165,7 +165,11 @@ const getMe = async (req, res, next) => {
       return res
         .status(404)
         .json({ success: false, message: "User not found" });
-    return sendSuccess(res, user.toSafeObject());
+
+    const safeUser = user.toSafeObject();
+    safeUser.hasCompany = !!(user.companies && user.companies.length > 0);
+
+    return sendSuccess(res, safeUser);
   } catch (err) {
     next(err);
   }

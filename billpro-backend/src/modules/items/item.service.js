@@ -17,9 +17,10 @@ const createItem = async (companyId, data) => {
   return itemObj;
 };
 
-const getItems = async (companyId, { page = 1, limit = 20, search, itemType, isActive, lowStock }) => {
+const getItems = async (companyId, { page = 1, limit = 20, search, itemType, isActive, lowStock, is_selling }) => {
   const filter = { companyId };
   if (isActive !== undefined) filter.isActive = isActive === 'true' || isActive === true;
+  if (is_selling !== undefined) filter.is_selling = is_selling === 'true' || is_selling === true;
   if (itemType) filter.itemType = itemType;
   if (lowStock === 'true') filter.isLowStock = true;
   if (search) {

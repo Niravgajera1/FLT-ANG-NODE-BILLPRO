@@ -24,7 +24,7 @@ const createVendor = async (companyId, data) => {
   return Vendor.create({ ...data, companyId, vendorCode });
 };
 
-const getVendors = async (companyId, { page = 1, limit = 20, search, isActive = true }) => {
+const getVendors = async (companyId, { page = 1, limit = 20, search, isActive }) => {
   const filter = { companyId };
   if (isActive !== undefined) filter.isActive = isActive === 'true' || isActive === true;
   if (search) {
@@ -54,7 +54,11 @@ const updateVendor = async (companyId, vendorId, data) => {
 };
 
 const deleteVendor = async (companyId, vendorId) => {
-  return Vendor.findOneAndUpdate({ _id: vendorId, companyId }, { $set: { isActive: false } }, { new: true });
+  const vendor = await Vendor.findOne({ _id: vendorId, companyId });
+  if (!vendor) throw Object.assign(new Error('Vendor not found'), { statusCode: 404 });
+  vendor.isActive = !vendor.isActive;
+  await vendor.save();
+  return vendor;
 };
 
 module.exports = { createVendor, getVendors, getVendorById, updateVendor, deleteVendor };
