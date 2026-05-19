@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
 
 import '../config/app_config.dart';
@@ -11,9 +11,9 @@ final _logger = Logger(printer: PrettyPrinter(methodCount: 0));
 
 class DioClient {
   late final Dio dio;
-  final FlutterSecureStorage _storage;
+  final SharedPreferences _prefs;
 
-  DioClient({required FlutterSecureStorage storage}) : _storage = storage {
+  DioClient({required SharedPreferences prefs}) : _prefs = prefs {
     dio = Dio(
       BaseOptions(
         baseUrl: AppConfig.apiBaseUrl,
@@ -24,7 +24,7 @@ class DioClient {
     );
 
     dio.interceptors.addAll([
-      _AuthInterceptor(storage: _storage, dio: dio),
+      _AuthInterceptor(prefs: _prefs, dio: dio),
       LogInterceptor(
         requestBody: true,
         responseBody: true,
@@ -35,19 +35,19 @@ class DioClient {
 }
 
 class _AuthInterceptor extends Interceptor {
-  final FlutterSecureStorage _storage;
+  final SharedPreferences _prefs;
   final Dio _dio;
   bool _isRefreshing = false;
 
-  _AuthInterceptor({required FlutterSecureStorage storage, required Dio dio})
-      : _storage = storage,
+  _AuthInterceptor({required SharedPreferences prefs, required Dio dio})
+      : _prefs = prefs,
         _dio = dio;
 
   @override
   void onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
-    final token = await _storage.read(key: AppConstants.accessTokenKey);
-    final companyId = await _storage.read(key: AppConstants.activeCompanyIdKey);
+    final token = _prefs.getString(AppConstants.accessTokenKey);
+    final companyId = _prefs.getString(AppConstants.activeCompanyIdKey);
 
     if (token != null) {
       options.headers['Authorization'] = 'Bearer $token';
@@ -64,8 +64,7 @@ class _AuthInterceptor extends Interceptor {
     if (err.response?.statusCode == 401 && !_isRefreshing) {
       _isRefreshing = true;
       try {
-        final refreshToken =
-            await _storage.read(key: AppConstants.refreshTokenKey);
+        final refreshToken = _prefs.getString(AppConstants.refreshTokenKey);
         if (refreshToken == null) {
           _isRefreshing = false;
           return handler.reject(err);
@@ -82,11 +81,11 @@ class _AuthInterceptor extends Interceptor {
           final newAccessToken = response.data['data']['accessToken'];
           final newRefreshToken = response.data['data']['refreshToken'];
 
-          await _storage.write(
-              key: AppConstants.accessTokenKey, value: newAccessToken);
+          await _prefs.setString(
+              AppConstants.accessTokenKey, newAccessToken);
           if (newRefreshToken != null) {
-            await _storage.write(
-                key: AppConstants.refreshTokenKey, value: newRefreshToken);
+            await _prefs.setString(
+                AppConstants.refreshTokenKey, newRefreshToken);
           }
 
           // Retry the original request
@@ -98,8 +97,8 @@ class _AuthInterceptor extends Interceptor {
         }
       } catch (_) {
         // Refresh failed — clear tokens
-        await _storage.delete(key: AppConstants.accessTokenKey);
-        await _storage.delete(key: AppConstants.refreshTokenKey);
+        await _prefs.remove(AppConstants.accessTokenKey);
+        await _prefs.remove(AppConstants.refreshTokenKey);
       }
       _isRefreshing = false;
     }

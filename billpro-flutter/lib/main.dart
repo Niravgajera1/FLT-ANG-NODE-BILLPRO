@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 
 import 'app.dart';
 import 'core/network/dio_client.dart';
+import 'core/providers/common_provider.dart';
 import 'features/auth/data/auth_repository.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
 import 'features/profile/data/profile_repository.dart';
@@ -25,13 +26,14 @@ void main() async {
     statusBarIconBrightness: Brightness.dark,
   ));
 
-  const storage = FlutterSecureStorage();
-  final dioClient = DioClient(storage: storage);
+  // Initialize SharedPreferences
+  final prefs = await SharedPreferences.getInstance();
+
+  final dioClient = DioClient(prefs: prefs);
   final authRepository = AuthRepository(
     dioClient: dioClient,
-    storage: storage,
+    prefs: prefs,
   );
-
   final profileRepository = ProfileRepository(dioClient: dioClient);
 
   runApp(
@@ -41,7 +43,10 @@ void main() async {
           create: (_) => AuthProvider(authRepository: authRepository),
         ),
         ChangeNotifierProvider(
-          create: (_) => ProfileProvider(profileRepository: profileRepository),
+          create: (_) => ProfileProvider(repository: profileRepository),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => CommonProvider(dioClient: dioClient),
         ),
       ],
       child: const BillProApp(),

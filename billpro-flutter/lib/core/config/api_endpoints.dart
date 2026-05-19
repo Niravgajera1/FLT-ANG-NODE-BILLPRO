@@ -1,6 +1,13 @@
 class ApiEndpoints {
   ApiEndpoints._();
 
+  // Common / Dropdowns
+  static const String businessTypes = '/common/businessTypes';
+  static const String businessCategories = '/common/businessCategories';
+  static const String gstTypes = '/common/gstTypes';
+  static const String states = '/common/states';
+
+
   // Auth
   static const String register = '/auth/register';
   static const String verifyOtp = '/auth/verify-otp';

@@ -94,7 +94,8 @@ class AuthProvider extends ChangeNotifier {
       _setLoading(false);
       return false;
     } catch (e) {
-      _errorMessage = 'Something went wrong. Please try again.';
+      _errorMessage = e.toString();
+      debugPrint('Login error: $e');
       _setLoading(false);
       return false;
     }
@@ -221,5 +222,21 @@ class AuthProvider extends ChangeNotifier {
     _user = null;
     _status = AuthStatus.unauthenticated;
     _setLoading(false);
+  }
+
+  // ── Refresh Profile (GET /auth/me) ──────────────────────────────────────
+  Future<void> refreshProfile() async {
+    try {
+      _user = await _authRepository.getMe();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('refreshProfile error: $e');
+    }
+  }
+
+  // ── Update cached user (after company creation) ─────────────────────────
+  void updateUser(UserModel user) {
+    _user = user;
+    notifyListeners();
   }
 }
