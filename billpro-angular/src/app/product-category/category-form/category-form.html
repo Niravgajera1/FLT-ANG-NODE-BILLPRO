@@ -1,0 +1,114 @@
+<div class="p-6">
+
+    <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+
+        <div>
+
+            <h1 class="text-3xl font-semibold text-slate-900">
+
+                {{ pageTitle }}
+
+            </h1>
+
+            <p class="mt-2 text-sm text-slate-500">
+
+                Create or update product category.
+
+            </p>
+
+        </div>
+
+        <button routerLink="/product-category"
+            class="inline-flex items-center rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
+
+            Back to Category List
+
+        </button>
+
+    </div>
+
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()"
+        class="space-y-8 rounded-[2rem] border border-gray-200 bg-white p-8 shadow-xl shadow-slate-200/40">
+
+        <div class="rounded-3xl bg-slate-50 p-6">
+
+            <div class="mb-6">
+
+                <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">
+
+                    Category Information
+
+                </p>
+
+            </div>
+
+
+            <div class="grid gap-6">
+
+                <label class="space-y-3">
+
+                    <span class="text-sm font-medium text-slate-700">
+
+                        Category Name
+
+                    </span>
+
+                    <input formControlName="name" type="text" placeholder="Footwear"
+                        class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100" />
+
+                </label>
+
+
+                <label class="space-y-3">
+
+                    <span class="text-sm font-medium text-slate-700">
+
+                        Description
+
+                    </span>
+
+                    <textarea rows="4" formControlName="description" placeholder="Running shoes, boots, casual wear"
+                        class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100"></textarea>
+
+                </label>
+
+
+                <label class="flex items-center gap-3 text-sm text-slate-700">
+
+                    <input type="checkbox" formControlName="isActive"
+                        class="h-4 w-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500" />
+
+                    Active Category
+
+                </label>
+
+            </div>
+
+        </div>
+
+
+        <div class="flex flex-col gap-3 border-t border-gray-200 pt-4 sm:flex-row sm:justify-end">
+
+            <button type="button" (click)="cancel()"
+                class="rounded-2xl border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+
+                Cancel
+
+            </button>
+
+
+            <button type="submit" [disabled]="form.invalid || isSaving()"
+                class="rounded-2xl bg-primary-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-primary-200/30 transition hover:bg-primary-700 disabled:opacity-60">
+
+                {{ isSaving()
+                ? 'Saving...'
+                : submitText }}
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>

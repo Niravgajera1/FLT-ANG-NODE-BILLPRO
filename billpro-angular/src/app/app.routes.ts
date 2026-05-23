@@ -58,6 +58,25 @@ export const routes: Routes = [
   },
 
   {
+    path: 'category',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./product-category/category-list/category-list').then(m => m.CategoryList)
+  },
+  {
+    path: 'category/add',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./product-category/category-form/category-form').then(m => m.CategoryForm)
+  },
+  {
+    path: 'category/:id/edit',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./product-category/category-form/category-form').then(m => m.CategoryForm)
+  },
+
+  {
     path: 'vendor',
     canActivate: [authGuard],
     loadComponent: () =>

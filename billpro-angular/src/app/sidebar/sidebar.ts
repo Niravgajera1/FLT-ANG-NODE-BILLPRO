@@ -30,6 +30,7 @@ export class Sidebar implements OnInit, OnDestroy {
     { label: 'Product Details', icon: 'product', route: '/products' },
     { label: 'Create Invoice', icon: 'invoice', route: '/create-invoice' },
     { label: 'Purchase Bill', icon: 'purchase', route: '/purchase-bill' },
+    { label: 'Product Categories', icon: 'category', route: '/category' },
   ];
 
   ngOnInit(): void {

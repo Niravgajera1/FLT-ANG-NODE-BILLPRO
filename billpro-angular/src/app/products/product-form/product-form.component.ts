@@ -1,12 +1,25 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { ToastService } from '../../auth/toast.service';
 import { AuthService } from '../../auth/auth.service';
 import { API_URL } from '../../app.config';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+
+interface OptionResponse {
+  success: boolean;
+  message: string;
+
+  data?: Array<{
+    id?: string;
+    _id?: string;
+    label?: string;
+    name?: string;
+    value?: string;
+  }>;
+}
 
 interface ItemApiResponse {
   success: boolean;
@@ -36,6 +49,7 @@ export class ProductFormComponent implements OnInit {
   private http = inject(HttpClient);
   private auth = inject(AuthService);
   private apiUrl = inject(API_URL);
+
 
   form: FormGroup = this.fb.group({
     name: ['', Validators.required],
@@ -77,19 +91,143 @@ export class ProductFormComponent implements OnInit {
   selectedImageName = signal('');
   private productId: string | null = null;
 
+  categoryOptions = signal<
+    Array<{
+      id: string;
+      label: string;
+    }>
+  >([]);
+
+
   ngOnInit(): void {
-    const companyId = this.getCompanyId();
+
+    const companyId =
+      this.getCompanyId();
+
     if (companyId) {
-      this.form.patchValue({ companyId });
+
+      this.form.patchValue({
+        companyId
+      });
+
+      this.loadCategories(
+        companyId
+      );
+
     }
 
-    this.productId = this.route.snapshot.paramMap.get('id');
+    this.productId =
+      this.route.snapshot.paramMap.get('id');
+
     if (this.productId) {
-      this.pageTitle = 'Edit Product';
-      this.submitText = 'Save Changes';
-      this.loadProduct(this.productId);
+
+      this.pageTitle =
+        'Edit Product';
+
+      this.submitText =
+        'Save Changes';
+
+      this.loadProduct(
+        this.productId
+      );
+
+    }
+
+  }
+
+
+  private async loadCategories(
+    companyId: string
+  ): Promise<void> {
+
+    const token =
+      this.auth.getAuthToken();
+
+    if (!token)
+      return;
+
+    try {
+
+      const response =
+        await firstValueFrom(
+
+          this.http.get<OptionResponse>(
+
+            `${this.apiUrl}/api/v1/common/options/${companyId}`,
+
+            {
+
+              headers:
+                new HttpHeaders({
+
+                  Authorization:
+                    `Bearer ${token}`
+
+                }),
+
+              params:
+                new HttpParams()
+                  .set(
+                    'type',
+                    '4'
+                  )
+
+            }
+
+          )
+
+        );
+
+      if (
+        !response.success
+      ) {
+        return;
+      }
+
+      this.categoryOptions.set(
+
+        (response.data || [])
+
+          .map(
+
+            item => ({
+
+              id:
+
+                item.id ||
+
+                item._id ||
+
+                item.value ||
+
+                '',
+
+              label:
+
+                item.label ||
+
+                item.name ||
+
+                ''
+
+            })
+
+          )
+
+      );
+
+    }
+
+    catch (error) {
+
+      console.error(
+        'Category load failed',
+        error
+      );
+
     }
   }
+
 
   cancel(): void {
     this.router.navigate(['/products']);
@@ -119,11 +257,11 @@ export class ProductFormComponent implements OnInit {
     try {
       const request = this.productId
         ? this.http.put<ItemApiResponse>(`${this.apiUrl}/api/v1/items/${this.productId}`, this.toFormData(), {
-            headers: new HttpHeaders({ Authorization: `Bearer ${token}` })
-          })
+          headers: new HttpHeaders({ Authorization: `Bearer ${token}` })
+        })
         : this.http.post<ItemApiResponse>(`${this.apiUrl}/api/v1/items`, this.toFormData(), {
-            headers: new HttpHeaders({ Authorization: `Bearer ${token}` })
-          });
+          headers: new HttpHeaders({ Authorization: `Bearer ${token}` })
+        });
 
       const response = await firstValueFrom(request);
 
