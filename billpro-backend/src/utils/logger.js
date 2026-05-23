@@ -1,5 +1,6 @@
 const winston = require('winston');
 const path = require('path');
+const util = require('util');
 
 const logDir = process.env.LOG_DIR || './logs';
 
@@ -30,7 +31,9 @@ if (process.env.NODE_ENV !== 'production') {
     format: winston.format.combine(
       winston.format.colorize(),
       winston.format.printf(({ timestamp, level, message, ...meta }) => {
-        const metaStr = Object.keys(meta).length ? JSON.stringify(meta, null, 2) : '';
+        const metaStr = Object.keys(meta).length 
+          ? `\n${util.inspect(meta, { depth: 3, colors: true, compact: false })}` 
+          : '';
         return `${timestamp} [${level}]: ${message} ${metaStr}`;
       })
     ),

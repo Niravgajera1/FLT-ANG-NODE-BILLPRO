@@ -101,7 +101,11 @@ const sendOTPEmail = async (email, otp, purpose = 'registration') => {
     
     return true;
   } catch (err) {
-    logger.error('Failed to send email OTP:', err);
+    logger.error('Failed to send email OTP:', {
+      message: err.message,
+      response: err.response?.data,
+      stack: err.stack,
+    });
     return false;
   }
 };
