@@ -154,97 +154,291 @@ export class PurchaseBillFormComponent implements OnInit {
   }
 
   async onSubmit(): Promise<void> {
+
     if (this.form.invalid) {
+
       this.form.markAllAsTouched();
-      this.toast.error('Please correct the form errors before submitting.');
-      return;
-    }
 
-    const token = this.auth.getAuthToken();
-    if (!token) {
-      this.toast.error('Authentication token missing. Please login again.');
-      return;
-    }
-
-    const companyId = this.getCompanyId();
-    if (!companyId) {
-      this.toast.error('Company ID missing. Please complete company setup.');
-      return;
-    }
-
-    this.isSubmitting.set(true);
-    try {
-      const isEdit = !!this.billId;
-      const url = isEdit
-        ? `${this.apiUrl}/api/v1/purchase/${this.billId}`
-        : `${this.apiUrl}/api/v1/purchase`;
-
-      const response = await firstValueFrom(
-        this.http.request<PurchaseApiResponse>(isEdit ? 'PUT' : 'POST', url, {
-          body: this.toPayload(),
-          headers: new HttpHeaders({ Authorization: `Bearer ${token}` }),
-          params: new HttpParams().set('companyId', companyId)
-        })
+      this.toast.error(
+        'Please correct form errors.'
       );
 
-      if (!response?.success) {
-        this.toast.error(response?.message || 'Could not save purchase bill.');
+      return;
+
+    }
+
+    const token =
+      this.auth.getAuthToken();
+
+    const companyId =
+      this.getCompanyId();
+
+    if (
+      !token ||
+      !companyId
+    ) {
+
+      this.toast.error(
+        'Authentication failed.'
+      );
+
+      return;
+
+    }
+
+    this.isSubmitting.set(
+      true
+    );
+
+    try {
+
+      const payload =
+        this.toPayload();
+
+      const request =
+
+        this.billId
+
+          ?
+
+          this.http.put<PurchaseApiResponse>(
+
+            `${this.apiUrl}/api/v1/purchase/${this.billId}`,
+
+            payload,
+
+            {
+
+              headers:
+                new HttpHeaders({
+
+                  Authorization:
+                    `Bearer ${token}`,
+
+                  'Content-Type':
+                    'application/json'
+
+                }),
+
+              params:
+                new HttpParams()
+
+                  .set(
+                    'companyId',
+                    companyId
+                  )
+
+            }
+
+          )
+
+          :
+
+          this.http.post<PurchaseApiResponse>(
+
+            `${this.apiUrl}/api/v1/purchase`,
+
+            payload,
+
+            {
+
+              headers:
+                new HttpHeaders({
+
+                  Authorization:
+                    `Bearer ${token}`,
+
+                  'Content-Type':
+                    'application/json'
+
+                }),
+
+              params:
+                new HttpParams()
+
+                  .set(
+                    'companyId',
+                    companyId
+                  )
+
+            }
+
+          );
+
+      const response =
+        await firstValueFrom(
+          request
+        );
+
+      if (
+        !response?.success
+      ) {
+
+        this.toast.error(
+          response.message
+          ||
+          'Save failed'
+        );
+
         return;
+
       }
 
-      this.toast.success(response.message || (isEdit ? 'Purchase bill updated successfully.' : 'Purchase bill created successfully.'));
-      this.router.navigate(['/purchase-bill']);
-    } catch (error) {
-      console.error('Purchase bill API error:', error);
-      this.toast.error(this.getApiMessage(error, 'Could not save purchase bill.'));
-    } finally {
-      this.isSubmitting.set(false);
+      this.toast.success(
+
+        response.message ||
+
+        (
+
+          this.billId
+
+            ?
+
+            'Purchase bill updated'
+
+            :
+
+            'Purchase bill created'
+
+        )
+
+      );
+
+      this.router.navigate([
+        '/purchase-bill'
+      ]);
+
     }
+
+    catch (error) {
+
+      console.error(
+        error
+      );
+
+      this.toast.error(
+
+        this.getApiMessage(
+
+          error,
+
+          'Unable to save'
+
+        )
+
+      );
+
+    }
+
+    finally {
+
+      this.isSubmitting.set(
+        false
+      );
+
+    }
+
   }
 
-  private async loadBillForEdit(id: string): Promise<void> {
-    const token = this.auth.getAuthToken();
-    if (!token) return;
+  private async loadBillForEdit(
+    id: string
+  ) {
 
-    const companyId = this.getCompanyId();
+    const token =
+      this.auth.getAuthToken();
+
+    const companyId =
+      this.getCompanyId();
+
+    if (
+      !token ||
+      !companyId
+    ) return;
+
+    this.isSubmitting.set(
+      true
+    );
+
     try {
-      const response = await firstValueFrom(
-        this.http.get<PurchaseApiResponse>(`${this.apiUrl}/api/v1/purchase/${id}`, {
-          headers: new HttpHeaders({ Authorization: `Bearer ${token}` }),
-          params: new HttpParams().set('companyId', companyId)
-        })
+
+      const response: any =
+
+        await firstValueFrom(
+
+          this.http.get(
+
+            `${this.apiUrl}/api/v1/purchase/${id}`,
+
+            {
+
+              headers:
+                new HttpHeaders({
+
+                  Authorization:
+                    `Bearer ${token}`
+
+                }),
+
+              params:
+                new HttpParams()
+
+                  .set(
+                    'companyId',
+                    companyId
+                  )
+
+            }
+
+          )
+
+        );
+
+      if (
+        !response?.success
+      ) {
+
+        this.toast.error(
+          response.message
+        );
+
+        return;
+
+      }
+
+      this.patchPurchase(
+
+        response.data
+        ||
+        response
+
       );
 
-      if (response?.success && response.data) {
-        const bill = response.data as Record<string, unknown>;
-        this.form.patchValue({
-          vendorId: this.normalizeId(bill['vendorId']),
-          vendorBillNumber: bill['vendorBillNumber'] ?? '',
-          vendorBillDate: this.toDateInputValue(new Date(bill['vendorBillDate'] as string)),
-          billDate: this.toDateInputValue(new Date(bill['billDate'] as string)),
-          dueDate: this.toDateInputValue(new Date(bill['dueDate'] as string)),
-          poReference: bill['poReference'] ?? '',
-          placeOfSupply: bill['placeOfSupply'] ?? '',
-          isRCM: bill['isRCM'] ?? false,
-          paymentTerms: bill['paymentTerms'] ?? 'Net 30',
-          narration: bill['narration'] ?? '',
-          tags: Array.isArray(bill['tags']) ? (bill['tags'] as string[]).join(', ') : '',
-          notes: bill['notes'] ?? '',
-          termsAndConditions: bill['termsAndConditions'] ?? ''
-        });
-
-        const items = bill['lineItems'];
-        if (Array.isArray(items) && items.length > 0) {
-          this.lineItems.clear();
-          items.forEach((item: Record<string, unknown>) => {
-            this.lineItems.push(this.createLineItem(item));
-          });
-        }
-      }
-    } catch (error) {
-      console.error('Load purchase bill error:', error);
-      this.toast.error(this.getApiMessage(error, 'Could not load purchase bill for editing.'));
     }
+
+    catch (error) {
+
+      this.toast.error(
+
+        this.getApiMessage(
+
+          error,
+
+          'Unable to load bill'
+
+        )
+
+      );
+
+    }
+
+    finally {
+
+      this.isSubmitting.set(
+        false
+      );
+
+    }
+
   }
 
   private createLineItem(value?: Record<string, unknown>): FormGroup {
@@ -332,46 +526,105 @@ export class PurchaseBillFormComponent implements OnInit {
     };
   }
 
-  private toPayload(): Record<string, unknown> {
-    const value = this.form.value;
-    const tagsRaw = value.tags as string;
-    const tags = tagsRaw ? tagsRaw.split(',').map((t: string) => t.trim()).filter(Boolean) : [];
+  private toPayload() {
+
+    const value =
+      this.form.value;
 
     return {
-      vendorId: value.vendorId,
-      vendorBillNumber: value.vendorBillNumber,
-      vendorBillDate: new Date(value.vendorBillDate).toISOString(),
-      billDate: new Date(value.billDate).toISOString(),
-      dueDate: new Date(value.dueDate).toISOString(),
-      poReference: value.poReference,
-      placeOfSupply: value.placeOfSupply,
-      isRCM: value.isRCM,
-      paymentTerms: value.paymentTerms,
-      narration: value.narration,
-      tags,
-      lineItems: value.lineItems.map((item: Record<string, unknown>) => {
-        const payload: Record<string, unknown> = {
-          itemId: item['itemId'],
-          itemName: item['itemName'],
-          description: item['description'],
-          hsnCode: item['hsnCode'],
-          quantity: Number(item['quantity']) || 0,
-          unitPrice: Number(item['unitPrice']) || 0,
-          unit: item['unit'],
-          gstRate: Number(item['gstRate']) || 0,
-          cessRate: Number(item['cessRate']) || 0
-        };
-        const discountPercent = Number(item['discountPercent']) || 0;
-        const discountFlat = Number(item['discountFlat']) || 0;
-        if (discountPercent > 0) payload['discountPercent'] = discountPercent;
-        if (discountFlat > 0) payload['discountFlat'] = discountFlat;
-        if (item['batchNumber']) payload['batchNumber'] = item['batchNumber'];
-        if (item['batchExpiry']) payload['batchExpiry'] = new Date(item['batchExpiry'] as string).toISOString();
-        return payload;
-      }),
-      notes: value.notes,
-      termsAndConditions: value.termsAndConditions
+
+      vendorId:
+        value.vendorId,
+
+      vendorBillNumber:
+        value.vendorBillNumber,
+
+      vendorBillDate:
+        new Date(
+          String(
+            value.vendorBillDate
+          )
+        ).toISOString(),
+
+      dueDate:
+        new Date(
+          String(
+            value.dueDate
+          )
+        ).toISOString(),
+
+      poReference:
+        value.poReference,
+
+      paymentTerms:
+        value.paymentTerms,
+
+      placeOfSupply:
+        value.placeOfSupply,
+
+      isRCM:
+        value.isRCM,
+
+      narration:
+        value.narration,
+
+      vendorAddress:
+        value.vendorAddress,
+
+      lineItems:
+
+        (value.lineItems as any[])
+
+          .map(
+
+            item => ({
+
+              itemId:
+                item.itemId,
+
+              itemName:
+                item.itemName,
+
+              description:
+                item.description,
+
+              quantity:
+                Number(
+                  item.quantity
+                ),
+
+              unitPrice:
+                Number(
+                  item.unitPrice
+                ),
+
+              discountPercent:
+                Number(
+                  item.discountPercent
+                ) || 0,
+
+              discountFlat:
+                Number(
+                  item.discountFlat
+                ) || 0,
+
+              gstRate:
+                Number(
+                  item.gstRate
+                ) || 0
+
+            })
+
+          ),
+
+      notes:
+        value.notes,
+
+      termsAndConditions:
+        value.termsAndConditions
+
     };
+
   }
 
   private toDateInputValue(date: Date): string {
@@ -424,5 +677,126 @@ export class PurchaseBillFormComponent implements OnInit {
     if (typeof value === 'number') return value;
     if (typeof value === 'string' && value.trim()) return Number(value) || 0;
     return undefined;
+  }
+
+  private patchPurchase(
+    bill: any
+  ) {
+
+    this.form.patchValue({
+
+      vendorId:
+        bill.vendorId?._id
+        ||
+        bill.vendorId,
+
+      vendorBillNumber:
+        bill.vendorBillNumber,
+
+      vendorBillDate:
+        this.toDate(
+          bill.vendorBillDate
+        ),
+
+      billDate:
+        this.toDate(
+          bill.billDate
+        ),
+
+      dueDate:
+        this.toDate(
+          bill.dueDate
+        ),
+
+      poReference:
+        bill.poReference,
+
+      placeOfSupply:
+        bill.placeOfSupply,
+
+      isRCM:
+        bill.isRCM,
+
+      paymentTerms:
+        bill.paymentTerms,
+
+      narration:
+        bill.narration,
+
+      notes:
+        bill.notes,
+
+      termsAndConditions:
+        bill.termsAndConditions
+
+    });
+
+    this.lineItems.clear();
+
+    (
+      bill.lineItems
+      ||
+      []
+    )
+
+      .forEach(
+
+        (item: any) => {
+
+          this.lineItems.push(
+
+            this.createLineItem({
+
+              itemId:
+                item.itemId?._id
+                ||
+                item.itemId,
+
+              itemName:
+                item.itemName,
+
+              description:
+                item.description,
+
+              quantity:
+                item.quantity,
+
+              unitPrice:
+                item.unitPrice,
+
+              gstRate:
+                item.gstRate,
+
+              discountPercent:
+                item.discountPercent,
+
+              discountFlat:
+                item.discountFlat
+
+            })
+
+          );
+
+        }
+
+      );
+
+  }
+
+  private toDate(
+    value: string
+  ) {
+
+    if (
+      !value
+    )
+      return '';
+
+    return value
+      .slice(
+        0,
+        10
+      );
+
   }
 }

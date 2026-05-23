@@ -146,6 +146,12 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./purchase-bill/purchase-bill-form.component').then(m => m.PurchaseBillFormComponent)
   },
+  {
+    path: 'purchase-bill/:id/edit',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./purchase-bill/purchase-bill-form.component').then(m => m.PurchaseBillFormComponent)
+  },
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: '**', redirectTo: 'login' }
 ];

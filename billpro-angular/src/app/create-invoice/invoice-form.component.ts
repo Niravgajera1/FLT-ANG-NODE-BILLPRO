@@ -110,37 +110,17 @@ export class InvoiceFormComponent implements OnInit {
     });
 
     if (this.invoiceId) {
-      this.pageTitle = 'Edit Invoice';
-      this.submitText = 'Save Changes';
-      this.form.patchValue({
-        customerId: '6a099177af60543817e3929f',
-        invoiceType: 'tax_invoice',
-        customerPONumber: 'PO-998877',
-        placeOfSupply: 'Gujarat',
-        dispatchFrom: 'Warehouse A',
-        paymentTerms: 'Net 30'
-      });
-      this.lineItems.clear();
-      this.lineItems.push(this.createLineItem({
-        itemId: '664c134b0d3ab33c14a87d02',
-        itemName: 'Premium Wireless Mouse',
-        quantity: 2,
-        unitPrice: 1500,
-        unit: 'pcs',
-        gstRate: 18,
-        discountPercent: 10,
-        discountFlat: 0
-      }));
-      this.lineItems.push(this.createLineItem({
-        itemId: '664c138f0d3ab33c14a87e50',
-        itemName: 'Ergonomic Office Keyboard',
-        quantity: 1,
-        unitPrice: 2500,
-        unit: 'pcs',
-        gstRate: 18,
-        discountPercent: 0,
-        discountFlat: 200
-      }));
+
+      this.pageTitle =
+        'Edit Invoice';
+
+      this.submitText =
+        'Save Changes';
+
+      this.loadInvoice(
+        this.invoiceId
+      );
+
     }
   }
 
@@ -197,46 +177,201 @@ export class InvoiceFormComponent implements OnInit {
   }
 
   async onSubmit(): Promise<void> {
+
     if (this.form.invalid) {
+
       this.form.markAllAsTouched();
-      this.toast.error('Please correct the form errors before submitting.');
+
+      this.toast.error(
+        'Please correct form errors.'
+      );
+
       return;
+
     }
 
-    const token = this.auth.getAuthToken();
+    const token =
+      this.auth.getAuthToken();
+
     if (!token) {
-      this.toast.error('Authentication token missing. Please login again.');
+
+      this.toast.error(
+        'Authentication token missing.'
+      );
+
       return;
+
     }
 
-    const companyId = this.getCompanyId();
+    const companyId =
+      this.getCompanyId();
+
     if (!companyId) {
-      this.toast.error('Company ID missing. Please complete company setup.');
+
+      this.toast.error(
+        'Company ID missing.'
+      );
+
       return;
+
     }
 
     this.isSubmitting.set(true);
-    try {
-      const response = await firstValueFrom(
-        this.http.post<SalesApiResponse>(`${this.apiUrl}/api/v1/sales`, this.toPayload(), {
-          headers: new HttpHeaders({ Authorization: `Bearer ${token}` }),
-          params: new HttpParams().set('companyId', companyId)
-        })
-      );
 
-      if (!response?.success) {
-        this.toast.error(response?.message || 'Could not create invoice.');
-        return;
+    try {
+
+      const payload =
+        this.toPayload();
+
+      let request;
+
+      if (this.invoiceId) {
+
+        request =
+          this.http.put<SalesApiResponse>(
+
+            `${this.apiUrl}/api/v1/sales/${this.invoiceId}`,
+
+            payload,
+
+            {
+
+              headers:
+                new HttpHeaders({
+
+                  Authorization:
+                    `Bearer ${token}`,
+
+                  'Content-Type':
+                    'application/json'
+
+                }),
+
+              params:
+                new HttpParams()
+
+                  .set(
+                    'companyId',
+                    companyId
+                  )
+
+            }
+
+          );
+
       }
 
-      this.toast.success(response.message || 'Invoice created successfully.');
-      this.router.navigate(['/create-invoice']);
-    } catch (error) {
-      console.error('Create sales invoice API error:', error);
-      this.toast.error(this.getApiMessage(error, 'Could not create invoice.'));
-    } finally {
-      this.isSubmitting.set(false);
+      else {
+
+        request =
+          this.http.post<SalesApiResponse>(
+
+            `${this.apiUrl}/api/v1/sales`,
+
+            payload,
+
+            {
+
+              headers:
+                new HttpHeaders({
+
+                  Authorization:
+                    `Bearer ${token}`,
+
+                  'Content-Type':
+                    'application/json'
+
+                }),
+
+              params:
+                new HttpParams()
+
+                  .set(
+                    'companyId',
+                    companyId
+                  )
+
+            }
+
+          );
+
+      }
+
+      const response =
+        await firstValueFrom(
+          request
+        );
+
+      if (
+        !response?.success
+      ) {
+
+        this.toast.error(
+
+          response.message ||
+
+          'Invoice save failed'
+
+        );
+
+        return;
+
+      }
+
+      this.toast.success(
+
+        response.message ||
+
+        (
+
+          this.invoiceId
+
+            ?
+
+            'Invoice updated successfully'
+
+            :
+
+            'Invoice created successfully'
+
+        )
+
+      );
+
+      this.router.navigate([
+        '/create-invoice'
+      ]);
+
     }
+
+    catch (error) {
+
+      console.error(
+        error
+      );
+
+      this.toast.error(
+
+        this.getApiMessage(
+
+          error,
+
+          'Unable to save invoice'
+
+        )
+
+      );
+
+    }
+
+    finally {
+
+      this.isSubmitting.set(
+        false
+      );
+
+    }
+
   }
 
   private createLineItem(value?: Record<string, unknown>): FormGroup {
@@ -319,38 +454,107 @@ export class InvoiceFormComponent implements OnInit {
     };
   }
 
-  private toPayload(): Record<string, unknown> {
-    const value = this.form.value;
+  private toPayload() {
+
+    const value =
+      this.form.value;
+
     return {
-      companyId: this.getCompanyId(),
-      customerId: value.customerId,
-      invoiceType: value.invoiceType,
-      customerPONumber: value.customerPONumber,
-      invoiceDate: new Date(value.invoiceDate).toISOString(),
-      dueDate: new Date(value.dueDate).toISOString(),
-      placeOfSupply: value.placeOfSupply,
-      dispatchFrom: value.dispatchFrom,
-      paymentTerms: value.paymentTerms,
-      lineItems: value.lineItems.map((item: Record<string, unknown>) => {
-        const payload: Record<string, unknown> = {
-          itemId: item['itemId'],
-          itemName: item['itemName'],
-          quantity: Number(item['quantity']) || 0,
-          unitPrice: Number(item['unitPrice']) || 0,
-          unit: item['unit'],
-          gstRate: Number(item['gstRate']) || 0
-        };
-        const discountPercent = Number(item['discountPercent']) || 0;
-        const discountFlat = Number(item['discountFlat']) || 0;
-        if (discountPercent > 0) payload['discountPercent'] = discountPercent;
-        if (discountFlat > 0) payload['discountFlat'] = discountFlat;
-        return payload;
-      }),
-      billingAddress: value.billingAddress,
-      shippingAddress: value.shippingAddress,
-      notes: value.notes,
-      termsAndConditions: value.termsAndConditions
+
+      customerId:
+        value.customerId,
+
+      invoiceType:
+        value.invoiceType,
+
+      customerPONumber:
+        value.customerPONumber,
+
+      billingAddress:
+        value.billingAddress,
+
+      shippingAddress:
+        value.shippingAddress,
+
+      invoiceDate:
+        new Date(
+          String(
+            value.invoiceDate
+          )
+        ).toISOString(),
+
+      dueDate:
+        new Date(
+          String(
+            value.dueDate
+          )
+        ).toISOString(),
+
+      placeOfSupply:
+        value.placeOfSupply,
+
+      dispatchFrom:
+        value.dispatchFrom,
+
+      isRCM: false,
+
+      paymentTerms:
+        value.paymentTerms,
+
+      notes:
+        value.notes,
+
+      termsAndConditions:
+        value.termsAndConditions,
+
+      lineItems:
+
+        (value.lineItems as any[])
+
+          .map(
+
+            item => ({
+
+              itemId:
+                item.itemId,
+
+              itemName:
+                item.itemName,
+
+              description:
+                item.description,
+
+              quantity:
+                Number(
+                  item.quantity
+                ),
+
+              unitPrice:
+                Number(
+                  item.unitPrice
+                ),
+
+              discountPercent:
+                Number(
+                  item.discountPercent
+                ) || 0,
+
+              discountFlat:
+                Number(
+                  item.discountFlat
+                ) || 0,
+
+              gstRate:
+                Number(
+                  item.gstRate
+                ) || 0
+
+            })
+
+          )
+
     };
+
   }
 
   private createAddressGroup(value?: Record<string, unknown>): FormGroup {
@@ -416,5 +620,244 @@ export class InvoiceFormComponent implements OnInit {
     if (typeof value === 'number') return value;
     if (typeof value === 'string' && value.trim()) return Number(value) || 0;
     return undefined;
+  }
+
+  private async loadInvoice(
+    id: string
+  ) {
+
+    const token =
+      this.auth.getAuthToken();
+
+    const companyId =
+      this.getCompanyId();
+
+    if (
+      !token ||
+      !companyId
+    ) {
+      return;
+    }
+
+    this.isSubmitting.set(
+      true
+    );
+
+    try {
+
+      const response: any =
+        await firstValueFrom(
+
+          this.http.get(
+
+            `${this.apiUrl}/api/v1/sales/${id}`,
+
+            {
+
+              headers:
+                new HttpHeaders({
+
+                  Authorization:
+                    `Bearer ${token}`
+
+                }),
+
+              params:
+                new HttpParams()
+
+                  .set(
+                    'companyId',
+                    companyId
+                  )
+
+            }
+
+          )
+
+        );
+
+      if (
+        !response?.success
+      ) {
+
+        this.toast.error(
+          response.message
+          ||
+          'Unable to load invoice'
+        );
+
+        return;
+
+      }
+
+      const invoice =
+
+        response.data
+        ||
+        response.invoice
+        ||
+        response;
+
+      this.patchInvoice(
+        invoice
+      );
+
+    }
+
+    catch (error) {
+
+      console.error(
+        error
+      );
+
+      this.toast.error(
+
+        this.getApiMessage(
+
+          error,
+
+          'Unable to load invoice'
+
+        )
+
+      );
+
+    }
+
+    finally {
+
+      this.isSubmitting.set(
+        false
+      );
+
+    }
+
+  }
+
+
+  private patchInvoice(
+    invoice: any
+  ) {
+
+    this.form.patchValue({
+
+      customerId:
+        invoice.customerId?._id
+        ||
+        invoice.customerId,
+
+      invoiceType:
+        invoice.invoiceType,
+
+      customerPONumber:
+        invoice.customerPONumber,
+
+      invoiceDate:
+        this.toDate(
+
+          invoice.invoiceDate
+
+        ),
+
+      dueDate:
+        this.toDate(
+
+          invoice.dueDate
+
+        ),
+
+      placeOfSupply:
+        invoice.placeOfSupply,
+
+      dispatchFrom:
+        invoice.dispatchFrom,
+
+      paymentTerms:
+        invoice.paymentTerms,
+
+      notes:
+        invoice.notes,
+
+      termsAndConditions:
+        invoice.termsAndConditions,
+
+      billingAddress:
+        invoice.billingAddress,
+
+      shippingAddress:
+        invoice.shippingAddress
+
+    });
+
+    this.lineItems.clear();
+
+    (
+      invoice.lineItems
+      ||
+      []
+    )
+
+      .forEach(
+
+        (item: any) => {
+
+          this.lineItems.push(
+
+            this.createLineItem({
+
+              itemId:
+                item.itemId?._id
+                ||
+                item.itemId,
+
+              itemName:
+                item.itemName,
+
+              description:
+                item.description,
+
+              quantity:
+                item.quantity,
+
+              unitPrice:
+                item.unitPrice,
+
+              unit:
+                item.unit,
+
+              gstRate:
+                item.gstRate,
+
+              discountPercent:
+                item.discountPercent,
+
+              discountFlat:
+                item.discountFlat
+
+            })
+
+          );
+
+        }
+
+      );
+
+  }
+
+  private toDate(
+    value: string
+  ) {
+
+    if (
+      !value
+    )
+      return '';
+
+    return value
+      .slice(
+        0,
+        10
+      );
+
   }
 }
