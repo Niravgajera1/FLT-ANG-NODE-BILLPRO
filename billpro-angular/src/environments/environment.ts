@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiUrl: 'https://macintosh-naturals-fighter-bare.trycloudflare.com'
+  apiUrl: 'https://billpro-94p8.onrender.com/'
 };

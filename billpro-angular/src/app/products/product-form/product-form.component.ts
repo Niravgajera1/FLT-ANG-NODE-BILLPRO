@@ -64,6 +64,7 @@ export class ProductFormComponent implements OnInit {
     valuationMethod: ['WAC', Validators.required],
     avgCost: [0, [Validators.required, Validators.min(0)]],
     isActive: [true],
+    is_Selling: [true],
     notes: [''],
     companyId: ['', Validators.required],
     image: [null]

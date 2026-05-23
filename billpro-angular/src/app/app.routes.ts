@@ -56,6 +56,26 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./company/company-form/company-form.component').then(m => m.CompanyFormComponent)
   },
+
+  {
+    path: 'vendor',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./vendor/vendor-list/vendor-list').then(m => m.VendorList)
+  },
+  {
+    path: 'vendor/add',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./vendor/vendor-form/vendor-form').then(m => m.VendorFormComponent)
+  },
+  {
+    path: 'vendor/:id/edit',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./vendor/vendor-form/vendor-form').then(m => m.VendorFormComponent)
+  },
+
   { path: 'company', redirectTo: 'customer', pathMatch: 'full' },
   { path: 'company/add', redirectTo: 'customer/add', pathMatch: 'full' },
   { path: 'company/:id/edit', redirectTo: 'customer/:id/edit', pathMatch: 'full' },

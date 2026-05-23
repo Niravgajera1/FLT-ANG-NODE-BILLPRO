@@ -1,0 +1,315 @@
+<div class="p-6">
+
+  <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div>
+      <h1 class="text-3xl font-semibold text-slate-900">
+        {{ pageTitle }}
+      </h1>
+
+      <p class="mt-2 text-sm text-slate-500">
+        Complete vendor details and save vendor information.
+      </p>
+    </div>
+
+    <button
+      routerLink="/vendor"
+      class="inline-flex items-center rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+    >
+      Back to Vendor List
+    </button>
+  </div>
+
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    class="space-y-8 rounded-[2rem] border border-gray-200 bg-white p-8 shadow-xl"
+  >
+
+    <!-- Vendor Information -->
+    <div class="rounded-3xl bg-slate-50 p-6">
+
+      <div class="mb-6">
+        <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">
+          Vendor Information
+        </p>
+      </div>
+
+      <div class="grid gap-6 md:grid-cols-2">
+
+        <label class="space-y-3">
+          <span class="text-sm font-medium text-slate-700">
+            Vendor Name
+          </span>
+
+          <input
+            formControlName="name"
+            type="text"
+            placeholder="ABC Traders Pvt Ltd"
+            class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm"
+          />
+        </label>
+
+        <label class="space-y-3">
+          <span class="text-sm font-medium text-slate-700">
+            Display Name
+          </span>
+
+          <input
+            formControlName="displayName"
+            type="text"
+            placeholder="ABC Traders"
+            class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm"
+          />
+        </label>
+
+      </div>
+    </div>
+
+    <!-- Contact -->
+    <div class="rounded-3xl bg-slate-50 p-6">
+
+      <div class="mb-6">
+        <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">
+          Contact Details
+        </p>
+      </div>
+
+      <div class="grid gap-6 md:grid-cols-2">
+
+        <label class="space-y-3">
+          <span class="text-sm font-medium text-slate-700">
+            Contact Person
+          </span>
+
+          <input
+            formControlName="contactPerson"
+            type="text"
+            class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm"
+          />
+        </label>
+
+        <label class="space-y-3">
+          <span class="text-sm font-medium text-slate-700">
+            Mobile
+          </span>
+
+          <input
+            formControlName="mobile"
+            type="text"
+            class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm"
+          />
+        </label>
+
+        <label class="space-y-3">
+          <span class="text-sm font-medium text-slate-700">
+            Email
+          </span>
+
+          <input
+            formControlName="email"
+            type="email"
+            class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm"
+          />
+        </label>
+
+        <label class="space-y-3">
+          <span class="text-sm font-medium text-slate-700">
+            GSTIN
+          </span>
+
+          <input
+            formControlName="gstin"
+            type="text"
+            class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm"
+          />
+        </label>
+
+      </div>
+    </div>
+
+    <!-- Billing Address -->
+    <div
+      formGroupName="billingAddress"
+      class="rounded-3xl bg-slate-50 p-6"
+    >
+
+      <div class="mb-6">
+        <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">
+          Billing Address
+        </p>
+      </div>
+
+      <div class="grid gap-6 md:grid-cols-2">
+
+        <label class="space-y-3 md:col-span-2">
+          <span class="text-sm font-medium text-slate-700">
+            Address Line 1
+          </span>
+
+          <input
+            formControlName="line1"
+            type="text"
+            class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm"
+          />
+        </label>
+
+        <label class="space-y-3">
+          <span class="text-sm font-medium text-slate-700">
+            Address Line 2
+          </span>
+
+          <input
+            formControlName="line2"
+            type="text"
+            class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm"
+          />
+        </label>
+
+        <label class="space-y-3">
+          <span class="text-sm font-medium text-slate-700">
+            City
+          </span>
+
+          <input
+            formControlName="city"
+            type="text"
+            class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm"
+          />
+        </label>
+
+        <label class="space-y-3">
+          <span class="text-sm font-medium text-slate-700">
+            State
+          </span>
+
+          <input
+            formControlName="state"
+            type="text"
+            class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm"
+          />
+        </label>
+
+        <label class="space-y-3">
+          <span class="text-sm font-medium text-slate-700">
+            State Code
+          </span>
+
+          <input
+            formControlName="stateCode"
+            type="text"
+            class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm"
+          />
+        </label>
+
+        <label class="space-y-3">
+          <span class="text-sm font-medium text-slate-700">
+            PIN Code
+          </span>
+
+          <input
+            formControlName="pinCode"
+            type="text"
+            class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm"
+          />
+        </label>
+
+      </div>
+    </div>
+
+    <!-- Commercial -->
+    <div class="rounded-3xl bg-slate-50 p-6">
+
+      <div class="mb-6">
+        <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">
+          Commercial Details
+        </p>
+      </div>
+
+      <div class="grid gap-6 md:grid-cols-2">
+
+        <label class="space-y-3">
+          <span class="text-sm font-medium text-slate-700">
+            Payment Terms
+          </span>
+
+          <input
+            formControlName="paymentTerms"
+            type="text"
+            class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm"
+          />
+        </label>
+
+        <label class="space-y-3">
+          <span class="text-sm font-medium text-slate-700">
+            Credit Limit
+          </span>
+
+          <input
+            formControlName="creditLimit"
+            type="number"
+            class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm"
+          />
+        </label>
+
+        <label class="space-y-3">
+          <span class="text-sm font-medium text-slate-700">
+            Tags
+          </span>
+
+          <input
+            formControlName="tags"
+            type="text"
+            placeholder="vip, wholesale"
+            class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm"
+          />
+        </label>
+
+        <label class="flex items-center gap-3 text-sm text-slate-700">
+          <input
+            type="checkbox"
+            formControlName="isActive"
+            class="h-4 w-4"
+          />
+
+          Active Vendor
+        </label>
+
+        <label class="space-y-3 md:col-span-2">
+          <span class="text-sm font-medium text-slate-700">
+            Notes
+          </span>
+
+          <textarea
+            formControlName="notes"
+            rows="4"
+            class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm"
+          ></textarea>
+        </label>
+
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="flex justify-end gap-3">
+
+      <button
+        type="button"
+        (click)="cancel()"
+        class="rounded-2xl border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700"
+      >
+        Cancel
+      </button>
+
+      <button
+        type="submit"
+        [disabled]="isSaving()"
+        class="rounded-2xl bg-primary-600 px-6 py-3 text-sm font-semibold text-white"
+      >
+        {{ isSaving() ? 'Saving...' : submitText }}
+      </button>
+
+    </div>
+
+  </form>
+
+</div>

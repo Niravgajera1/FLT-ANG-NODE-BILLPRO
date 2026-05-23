@@ -1,0 +1,201 @@
+<div class="p-6">
+    <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+            <h1 class="text-3xl font-semibold text-gray-900">Vendor Directory</h1>
+            <p class="mt-2 text-sm text-gray-500">
+                Manage your vendors, supplier profiles, and contact details.
+            </p>
+        </div>
+
+        <button routerLink="/vendor/add"
+            class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-primary-600 to-cyan-600 px-5 py-3 text-sm font-semibold text-white shadow-xl shadow-primary-200/30 transition hover:from-primary-700 hover:to-cyan-700">
+            <span>Add Vendor</span>
+        </button>
+    </div>
+
+    <div class="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div class="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
+            <p class="text-xs uppercase tracking-[0.24em] text-slate-400">
+                Total Vendors
+            </p>
+            <p class="mt-3 text-3xl font-semibold text-slate-900">
+                {{ totalVendors() }}
+            </p>
+        </div>
+
+        <div class="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
+            <p class="text-xs uppercase tracking-[0.24em] text-slate-400">
+                Active Vendors
+            </p>
+            <p class="mt-3 text-3xl font-semibold text-emerald-700">
+                {{ vendors().filter(v => v.isActive).length }}
+            </p>
+        </div>
+
+        <div class="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
+            <p class="text-xs uppercase tracking-[0.24em] text-slate-400">
+                Inactive Vendors
+            </p>
+            <p class="mt-3 text-3xl font-semibold text-slate-700">
+                {{ vendors().filter(v => !v.isActive).length }}
+            </p>
+        </div>
+    </div>
+
+    <div class="overflow-hidden rounded-[2rem] border border-gray-200 bg-white shadow-xl">
+        <div
+            class="flex flex-col gap-4 border-b border-gray-100 bg-slate-50 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <p class="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">
+                    Vendor List
+                </p>
+
+                <p class="mt-1 text-sm text-slate-500">
+                    Quick access to vendor profiles and supplier management.
+                </p>
+            </div>
+
+            <div class="relative">
+                <input type="search" placeholder="Search vendors..." [value]="searchTerm()"
+                    (input)="searchTerm.set($any($event.target).value)"
+                    class="h-11 rounded-2xl border border-gray-200 bg-white px-4 pr-11 text-sm text-slate-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100" />
+
+                <svg class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 103.7 3.7a7.5 7.5 0 0012.95 12.95z" />
+                </svg>
+            </div>
+        </div>
+
+        <table class="min-w-full divide-y divide-gray-200 bg-white">
+            <thead class="bg-slate-100 text-slate-500">
+                <tr>
+                    <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-[0.3em]">
+                        Code
+                    </th>
+
+                    <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-[0.3em]">
+                        Vendor
+                    </th>
+
+                    <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-[0.3em]">
+                        Contact
+                    </th>
+
+                    <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-[0.3em]">
+                        Address
+                    </th>
+
+                    <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-[0.3em]">
+                        Tags
+                    </th>
+
+                    <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-[0.3em]">
+                        Credit Limit
+                    </th>
+
+                    <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-[0.3em]">
+                        Status
+                    </th>
+
+                    <th class="px-5 py-4 text-right text-xs font-semibold uppercase tracking-[0.3em]">
+                        Actions
+                    </th>
+                </tr>
+            </thead>
+
+            <tbody class="divide-y divide-gray-200">
+                <tr *ngIf="isLoading()">
+                    <td colspan="7" class="px-5 py-8 text-center text-sm text-slate-500">
+                        Loading vendors...
+                    </td>
+                </tr>
+
+                <tr *ngFor="let vendor of filteredVendors()" class="transition hover:bg-slate-50">
+                    <td class="px-5 py-4 text-sm font-semibold text-slate-900">
+                        {{ vendor.vendorCode || 'N/A' }}
+                    </td>
+
+                    <td class="px-5 py-4">
+                        <p class="text-sm font-semibold text-slate-900">
+                            {{ vendor.displayName || vendor.name }}
+                        </p>
+
+                        <p class="text-xs text-slate-500">
+                            {{ vendor.name }}
+                        </p>
+                    </td>
+
+                    <td class="px-5 py-4">
+                        <p class="text-sm font-semibold text-slate-900">
+                            {{ vendor.contactPerson || 'N/A' }}
+                        </p>
+
+                        <p class="text-xs text-slate-500">
+                            {{ vendor.mobile || 'N/A' }}
+                        </p>
+
+                        <p class="text-xs text-slate-500">
+                            {{ vendor.email || 'N/A' }}
+                        </p>
+                    </td>
+
+                    <td class="px-5 py-4 text-sm text-slate-600">
+                        {{ getAddressLabel(vendor) }}
+                    </td>
+
+                    <td class="px-5 py-4 text-sm text-slate-600">
+                        {{ vendor.tags?.join(', ') || 'N/A' }}
+                    </td>
+
+                    <td class="px-5 py-4 text-sm text-slate-600">
+                        {{ vendor.creditLimit | currency:'INR':'symbol':'1.0-0' }}
+                    </td>
+
+                    <td class="px-5 py-4 text-sm">
+
+                        <button type="button" (click)="toggleVendorStatus(vendor)"
+                            [disabled]="isStatusToggling(vendor._id)"
+                            class="inline-flex items-center gap-2 disabled:opacity-60">
+
+                            <span class="relative inline-flex h-6 w-11 items-center rounded-full transition"
+                                [class]="vendor.isActive ? 'bg-emerald-500' : 'bg-slate-300'">
+
+                                <span class="inline-block h-5 w-5 rounded-full bg-white shadow transition"
+                                    [class]="vendor.isActive ? 'translate-x-5' : 'translate-x-1'"></span>
+
+                            </span>
+
+                            <span [class]="vendor.isActive
+        ? 'text-xs font-semibold text-emerald-700'
+        : 'text-xs font-semibold text-slate-600'">
+                                {{ vendor.isActive ? 'Active' : 'Inactive' }}
+                            </span>
+
+                        </button>
+
+                    </td>
+
+                    <td class="px-5 py-4 text-right text-sm font-medium">
+                        <button type="button" (click)="editVendor(vendor._id)"
+                            class="mr-2 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-primary-300 hover:text-primary-700">
+                            ✏️
+                        </button>
+
+                        <button type="button" (click)="deleteVendor(vendor._id)"
+                            class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition hover:bg-red-100">
+                            🗑️
+                        </button>
+                    </td>
+                </tr>
+
+                <tr *ngIf="!isLoading() && filteredVendors().length === 0">
+                    <td colspan="7" class="px-5 py-8 text-center text-sm text-slate-500">
+                        No vendors found.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

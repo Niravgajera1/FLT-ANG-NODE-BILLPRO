@@ -261,7 +261,7 @@ export class InvoiceFormComponent implements OnInit {
     this.isOptionsLoading.set(true);
     try {
       const [products, customers] = await Promise.all([
-        this.loadCommonOptions(companyId, 1),
+        this.loadCommonOptions(companyId, 1, 1),
         this.loadCommonOptions(companyId, 2)
       ]);
 
@@ -275,9 +275,9 @@ export class InvoiceFormComponent implements OnInit {
     }
   }
 
-  private async loadCommonOptions(companyId: string, type: 1 | 2): Promise<CommonOption[]> {
+  private async loadCommonOptions(companyId: string, type: 1 | 2, forType = 0): Promise<CommonOption[]> {
     const response = await firstValueFrom(
-      this.http.get<CommonOptionsResponse>(`${this.apiUrl}/api/v1/common/options/${companyId}?type=${type}`, {
+      this.http.get<CommonOptionsResponse>(`${this.apiUrl}/api/v1/common/options/${companyId}?type=${type}&forType=${forType}`, {
         withCredentials: true
       })
     );

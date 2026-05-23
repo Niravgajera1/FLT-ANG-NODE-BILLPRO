@@ -113,6 +113,8 @@ export class ProfileComponent implements OnInit {
 
   profile = computed(() => {
     const current = this.auth.currentUser();
+    console.log(current);
+    
     return {
       fullName: current?.fullName ?? current?.name ?? 'Unknown User',
       email: current?.email ?? 'Unknown email',
@@ -399,6 +401,15 @@ export class ProfileComponent implements OnInit {
   selectedStateCodeLabel(): string {
     const code = this.companyForm.get('registeredAddress.stateCode')?.value;
     return code ? this.getStateLabel(code) : 'Select a state';
+  }
+
+  maskAccountNumber(accountNumber?: string): string {
+    if (!accountNumber) {
+      return 'N/A';
+    }
+
+    const visibleDigits = accountNumber.slice(-4);
+    return visibleDigits ? `•••• ${visibleDigits}` : accountNumber;
   }
 
   private getStateName(code?: string): string | undefined {
