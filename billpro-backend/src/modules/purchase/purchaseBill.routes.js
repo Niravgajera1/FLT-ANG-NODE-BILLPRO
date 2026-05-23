@@ -16,6 +16,8 @@ router.route('/')
 router.route('/outstanding')
   .get(authorize(PERMISSIONS.VIEW_REPORTS), ctrl.getVendorOutstanding);
 
+router.get('/:id/pdf', authorize(PERMISSIONS.CREATE_PURCHASE_BILL, PERMISSIONS.VIEW_REPORTS), ctrl.downloadPurchaseBillPDF);
+
 router.route('/:id')
   .get(authorize(PERMISSIONS.CREATE_PURCHASE_BILL, PERMISSIONS.VIEW_REPORTS), ctrl.getPurchaseBillById)
   .put(authorize(PERMISSIONS.CREATE_PURCHASE_BILL), auditMiddleware('purchase', 'UPDATE'), ctrl.updatePurchaseBill)

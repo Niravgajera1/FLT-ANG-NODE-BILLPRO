@@ -41,13 +41,27 @@ const authenticate = async (req, res, next) => {
  * Extract company context from request
  * Attaches companyId to req from header or JWT payload
  */
-const attachCompany = (req, res, next) => {
-  const companyId = req.query.companyId || req.headers['x-company-id'] || req.params?.companyId || req.body?.companyId || req.user?.activeCompanyId;
-  if (!companyId) {
-    return res.status(400).json({ success: false, message: 'Company context required in query parameters (companyId), headers, or params' });
+const attachCompany = async (req, res, next) => {
+  try {
+    let companyId = req.query.companyId || req.headers['x-company-id'] || req.params?.companyId || req.body?.companyId || req.user?.activeCompanyId;
+    
+    // Fallback to user's activeCompanyId or first company in DB if not provided in request context or token
+    if (!companyId && req.user?.id) {
+      const User = require('../modules/users/user.model');
+      const user = await User.findById(req.user.id);
+      if (user) {
+        companyId = user.activeCompanyId || (user.companies && user.companies[0]?.companyId);
+      }
+    }
+
+    if (!companyId) {
+      return res.status(400).json({ success: false, message: 'Company context required in query parameters (companyId), headers, or params' });
+    }
+    req.companyId = companyId.toString();
+    next();
+  } catch (err) {
+    next(err);
   }
-  req.companyId = companyId;
-  next();
 };
 
 module.exports = { authenticate, attachCompany };

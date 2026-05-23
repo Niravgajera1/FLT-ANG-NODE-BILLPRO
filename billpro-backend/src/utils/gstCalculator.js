@@ -126,15 +126,15 @@ const calculateLineItemGST = ({
  */
 const calculateBillTotals = (lineItems) => {
   const totals = lineItems.reduce((acc, item) => {
-    acc.subTotal         += item.grossValue;
-    acc.totalDiscount    += item.discountAmount;
-    acc.totalTaxableValue+= item.taxableValue;
-    acc.totalCGST        += item.cgst;
-    acc.totalSGST        += item.sgst;
-    acc.totalIGST        += item.igst;
-    acc.totalCess        += item.cess;
-    acc.totalTax         += item.totalTax;
-    acc.grandTotal       += item.lineTotal;
+    acc.subTotal += item.grossValue;
+    acc.totalDiscount += item.discountAmount;
+    acc.totalTaxableValue += item.taxableValue;
+    acc.totalCGST += item.cgst;
+    acc.totalSGST += item.sgst;
+    acc.totalIGST += item.igst;
+    acc.totalCess += item.cess;
+    acc.totalTax += item.totalTax;
+    acc.grandTotal += item.lineTotal;
     return acc;
   }, {
     subTotal: 0,
@@ -182,11 +182,11 @@ const getHSNSummary = (lineItems) => {
       };
     }
     hsnMap[key].taxableValue = round2(hsnMap[key].taxableValue + item.taxableValue);
-    hsnMap[key].cgst         = round2(hsnMap[key].cgst + item.cgst);
-    hsnMap[key].sgst         = round2(hsnMap[key].sgst + item.sgst);
-    hsnMap[key].igst         = round2(hsnMap[key].igst + item.igst);
-    hsnMap[key].cess         = round2(hsnMap[key].cess + item.cess);
-    hsnMap[key].totalTax     = round2(hsnMap[key].totalTax + item.totalTax);
+    hsnMap[key].cgst = round2(hsnMap[key].cgst + item.cgst);
+    hsnMap[key].sgst = round2(hsnMap[key].sgst + item.sgst);
+    hsnMap[key].igst = round2(hsnMap[key].igst + item.igst);
+    hsnMap[key].cess = round2(hsnMap[key].cess + item.cess);
+    hsnMap[key].totalTax = round2(hsnMap[key].totalTax + item.totalTax);
   });
 
   return Object.values(hsnMap);

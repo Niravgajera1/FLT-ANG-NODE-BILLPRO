@@ -43,6 +43,13 @@ const getReceivablesAging = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+const updateSalesInvoice = async (req, res, next) => {
+  try {
+    const invoice = await salesInvoiceService.updateSalesInvoice(req.companyId, req.params.id, req.user.id, req.body);
+    return sendSuccess(res, invoice, 'Invoice updated successfully');
+  } catch (err) { next(err); }
+};
+
 const Company = require('../company/company.model');
 const SalesInvoice = require('./salesInvoice.model');
 const { generateInvoicePDF } = require('../../utils/pdfGenerator');
@@ -79,6 +86,6 @@ const downloadSalesInvoicePDF = async (req, res, next) => {
 
 module.exports = {
   createSalesInvoice, getSalesInvoices, getSalesInvoiceById,
-  voidSalesInvoice, convertProformaToInvoice, getReceivablesAging,
-  downloadSalesInvoicePDF,
+  updateSalesInvoice, voidSalesInvoice, convertProformaToInvoice,
+  getReceivablesAging, downloadSalesInvoicePDF,
 };

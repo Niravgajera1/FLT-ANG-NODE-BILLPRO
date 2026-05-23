@@ -13,7 +13,7 @@ const itemSchema = new mongoose.Schema({
   // ── Classification ────────────────────────────────────────────────────────
   hsnCode: { type: String },   // For products
   sacCode: { type: String },   // For services
-  category: { type: String },
+  categoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'ItemCategory' },
   brand: { type: String },
   unit: { type: String, default: 'pcs' }, // pcs, kg, ltr, mtr, box, etc.
 
@@ -39,7 +39,7 @@ const itemSchema = new mongoose.Schema({
   batchTracking: { type: Boolean, default: false },
 
   // ── Valuation ─────────────────────────────────────────────────────────────
-  valuationMethod: { type: String, enum: ['WAC', 'FIFO'], default: 'WAC' },
+  valuationMethod: { type: String, enum: ['WAC', 'FIFO', 'LIFO'], default: 'WAC' },
   avgCost: { type: Number, default: 0 }, // Weighted Average Cost
 
   // ── Status ────────────────────────────────────────────────────────────────
