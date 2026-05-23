@@ -10,11 +10,8 @@ const createCompany = async (req, res, next) => {
 
 const getCompany = async (req, res, next) => {
   try {
-    const companyId = req.user.activeCompanyId;
-    if (!companyId) {
-      return res.status(400).json({ success: false, message: 'No active company found in token' });
-    }
-    const company = await companyService.getCompany(companyId, req.user.id);
+    const companyId = req.companyId || req.user?.activeCompanyId;
+    const company = await companyService.getCompany(companyId, req.user?.id);
     return sendSuccess(res, company);
   } catch (err) { next(err); }
 };

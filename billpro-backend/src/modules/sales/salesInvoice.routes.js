@@ -16,6 +16,7 @@ router.get('/aging', authorize(PERMISSIONS.VIEW_REPORTS), ctrl.getReceivablesAgi
 
 router.route('/:id')
   .get(authorize(PERMISSIONS.CREATE_SALES_INVOICE, PERMISSIONS.VIEW_REPORTS), ctrl.getSalesInvoiceById)
+  .put(authorize(PERMISSIONS.CREATE_SALES_INVOICE), auditMiddleware('sales', 'UPDATE'), ctrl.updateSalesInvoice)
   .delete(authorize(PERMISSIONS.DELETE_BILLS), auditMiddleware('sales', 'DELETE'), ctrl.voidSalesInvoice);
 
 router.get('/:id/pdf', authorize(PERMISSIONS.CREATE_SALES_INVOICE, PERMISSIONS.VIEW_REPORTS), ctrl.downloadSalesInvoicePDF);

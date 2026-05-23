@@ -17,7 +17,7 @@ const lineItemSchema = new mongoose.Schema({
   discountAmount: { type: Number, default: 0 },
 
   // GST
-  gstRate: { type: Number, enum: GST_RATES, default: 18 },
+  gstRate: { type: Number, default: 18 },
   cessRate: { type: Number, default: 0 },
   taxableValue: { type: Number, default: 0 },
   cgst: { type: Number, default: 0 },
