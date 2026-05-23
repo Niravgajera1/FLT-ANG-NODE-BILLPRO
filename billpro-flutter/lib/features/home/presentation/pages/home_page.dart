@@ -105,6 +105,7 @@ class HomePage extends StatelessWidget {
                 const SizedBox(height: 16),
                 ...[
                   (Icons.receipt_long_rounded, 'Sales Invoices', 'Create and manage bills', const Color(0xFFD97706), '/sales'),
+                  (Icons.shopping_cart_rounded, 'Purchase Bills', 'Manage vendor purchases', const Color(0xFF0284C7), '/purchases'),
                   (Icons.people_alt_rounded, 'Customer Directory', 'Manage customer accounts', AppColors.primary, '/customers'),
                   (Icons.local_shipping_rounded, 'Vendor Directory', 'Manage vendor accounts', const Color(0xFFE11D48), '/vendors'),
                   (Icons.inventory_2_rounded, 'Product Catalogue', 'Products, services & inventory', const Color(0xFF059669), '/items'),

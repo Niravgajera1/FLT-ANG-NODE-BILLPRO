@@ -16,6 +16,7 @@ import 'features/customer/presentation/pages/customer_list_page.dart';
 import 'features/item/presentation/pages/item_list_page.dart';
 import 'features/sales/presentation/pages/sales_list_page.dart';
 import 'features/vendor/presentation/pages/vendor_list_page.dart';
+import 'features/purchase/presentation/pages/purchase_list_page.dart';
 
 class BillProApp extends StatelessWidget {
   const BillProApp({super.key});
@@ -65,6 +66,7 @@ class BillProApp extends StatelessWidget {
         GoRoute(path: '/items', builder: (context, state) => const ItemListPage()),
         GoRoute(path: '/sales', builder: (context, state) => const SalesListPage()),
         GoRoute(path: '/vendors', builder: (context, state) => const VendorListPage()),
+        GoRoute(path: '/purchases', builder: (context, state) => const PurchaseListPage()),
       ],
     );
 
