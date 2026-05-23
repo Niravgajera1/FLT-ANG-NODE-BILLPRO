@@ -29,6 +29,19 @@ interface Invoice {
   status: 'Paid' | 'Due' | 'Overdue';
 }
 
+interface CommonOption {
+  id: string;
+  label: string;
+  name?: string;
+}
+
+interface CommonOptionsResponse {
+  success?: boolean;
+  message?: string;
+  data?: unknown;
+  options?: unknown[];
+}
+
 interface SalesApiResponse {
   success?: boolean;
   message?: string;
@@ -54,14 +67,28 @@ export class CreateInvoiceComponent implements OnInit, OnDestroy {
 
   invoices = signal<Invoice[]>([]);
   isLoading = signal(false);
+  isOptionsLoading = signal(false);
   previewLoadingId = signal('');
   pdfPreviewUrl = signal<SafeResourceUrl | null>(null);
   search = signal('');
   invoiceType = signal('');
   status = signal('');
+  customerId = signal('');
+  fromDate = signal('');
+  toDate = signal('');
+  customerOptions = signal<CommonOption[]>([]);
+  todayDate = signal('');
   private pdfObjectUrl = '';
 
   ngOnInit(): void {
+    // Set today's date for max attribute on date inputs
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    this.todayDate.set(`${year}-${month}-${day}`);
+    
+    this.loadCustomerOptions();
     this.loadInvoices();
   }
 
@@ -83,6 +110,93 @@ export class CreateInvoiceComponent implements OnInit, OnDestroy {
     this.loadInvoices();
   }
 
+  openFilterDialog(): void {
+    // Removed - filter dialog no longer needed
+  }
+
+  closeFilterDialog(): void {
+    // Removed - filter dialog no longer needed
+  }
+
+  applyDateFilter(): void {
+    this.loadInvoices();
+  }
+
+  onCustomerChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.customerId.set(select.value);
+    this.loadInvoices();
+  }
+
+  onFromDateChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.fromDate.set(input.value);
+    // Do NOT load invoices here - user must click Filter button
+  }
+
+  onToDateChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.toDate.set(input.value);
+    // Do NOT load invoices here - user must click Filter button
+  }
+
+  private async loadCustomerOptions(): Promise<void> {
+    const token = this.auth.getAuthToken();
+    if (!token) {
+      return;
+    }
+
+    const companyId = this.getCompanyId();
+    if (!companyId) {
+      return;
+    }
+
+    this.isOptionsLoading.set(true);
+    try {
+      const response = await firstValueFrom(
+        this.http.get<CommonOptionsResponse>(`${this.apiUrl}/api/v1/common/options/${companyId}?type=2`, {
+          headers: new HttpHeaders({ Authorization: `Bearer ${token}` }),
+          withCredentials: true
+        })
+      );
+
+      if (response?.success === false) {
+        throw new Error(response.message || 'Could not load customer options.');
+      }
+
+      const options = this.extractOptions(response).map(option => this.toOption(option));
+      this.customerOptions.set(options);
+    } catch (error) {
+      console.error('Customer options API error:', error);
+    } finally {
+      this.isOptionsLoading.set(false);
+    }
+  }
+
+  private extractOptions(response: CommonOptionsResponse): unknown[] {
+    if (Array.isArray(response)) return response;
+    if (Array.isArray(response.options)) return response.options;
+    if (Array.isArray(response.data)) return response.data;
+
+    const data = response.data as Record<string, unknown> | undefined;
+    if (Array.isArray(data?.['options'])) return data['options'];
+    if (Array.isArray(data?.['customers'])) return data['customers'];
+    if (Array.isArray(data?.['data'])) return data['data'];
+
+    return [];
+  }
+
+  private toOption(option: unknown): CommonOption {
+    const value = option as Record<string, unknown>;
+    const id = this.asString(value['_id'] ?? value['id'] ?? value['value']);
+    const name = this.asString(value['name'] ?? value['displayName'] ?? value['label']);
+    return {
+      id,
+      label: name || id,
+      name
+    };
+  }
+
   async loadInvoices(): Promise<void> {
     const token = this.auth.getAuthToken();
     if (!token) {
@@ -96,11 +210,25 @@ export class CreateInvoiceComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const params = new HttpParams()
+    let params = new HttpParams()
       .set('companyId', companyId)
       .set('invoiceType', this.invoiceType())
       .set('status', this.status())
       .set('search', this.search());
+
+    if (this.customerId()) {
+      params = params.set('customerId', this.customerId());
+    }
+
+    if (this.fromDate()) {
+      const fromIso = new Date(this.fromDate()).toISOString();
+      params = params.set('fromDate', fromIso);
+    }
+
+    if (this.toDate()) {
+      const toIso = new Date(this.toDate()).toISOString();
+      params = params.set('toDate', toIso);
+    }
 
     this.isLoading.set(true);
     try {
@@ -116,7 +244,9 @@ export class CreateInvoiceComponent implements OnInit, OnDestroy {
         return;
       }
 
-      this.invoices.set(this.extractSales(response).map(item => this.toInvoice(item)));
+      let invoices = this.extractSales(response).map(item => this.toInvoice(item));
+      invoices = this.filterInvoicesByDateRange(invoices);
+      this.invoices.set(invoices);
     } catch (error) {
       console.error('Get sales invoices API error:', error);
       this.toast.error(this.getApiMessage(error, 'Unable to load invoices.'));
@@ -214,6 +344,35 @@ export class CreateInvoiceComponent implements OnInit, OnDestroy {
     if (Array.isArray(data?.['data'])) return data['data'];
 
     return [];
+  }
+
+  private filterInvoicesByDateRange(invoices: Invoice[]): Invoice[] {
+    const fromDate = this.fromDate();
+    const toDate = this.toDate();
+
+    if (!fromDate && !toDate) {
+      return invoices;
+    }
+
+    return invoices.filter(invoice => {
+      const invoiceDate = new Date(invoice.invoiceDate);
+      
+      if (fromDate) {
+        const from = new Date(fromDate);
+        if (invoiceDate < from) {
+          return false;
+        }
+      }
+      
+      if (toDate) {
+        const to = new Date(toDate);
+        if (invoiceDate > to) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
   }
 
   private toInvoice(item: unknown): Invoice {

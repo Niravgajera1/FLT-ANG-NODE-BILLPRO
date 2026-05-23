@@ -32,7 +32,10 @@ export class ProfileComponent implements OnInit {
   activeTab = signal<ProfileTab>('user');
   editMode = signal(false);
   isLoading = signal(false);
+  showAddCompanyForm = signal(false);
   businessCategoryOptions = signal<string[]>([]);
+  businessTypeOptions = signal<string[]>([]);
+  gstTypeOptions = signal<string[]>([]);
   stateCodeDropdownOpen = signal(false);
   stateCodeSearch = signal('');
   stateOptions = signal<Array<{ name: string; code: string }>>([
@@ -77,8 +80,8 @@ export class ProfileComponent implements OnInit {
     const search = this.stateCodeSearch().trim().toLowerCase();
     return search
       ? this.stateOptions().filter(state =>
-          `${state.name} - ${state.code}`.toLowerCase().includes(search)
-        )
+        `${state.name} - ${state.code}`.toLowerCase().includes(search)
+      )
       : this.stateOptions();
   });
 
@@ -111,10 +114,15 @@ export class ProfileComponent implements OnInit {
     bankAccounts: this.fb.array([this.createBankAccountGroup()])
   });
 
+  hasCompany = computed(() => {
+    const current = this.auth.currentUser();
+    return current?.hasCompany ?? false;
+  });
+
   profile = computed(() => {
     const current = this.auth.currentUser();
     console.log(current);
-    
+
     return {
       fullName: current?.fullName ?? current?.name ?? 'Unknown User',
       email: current?.email ?? 'Unknown email',
@@ -126,32 +134,33 @@ export class ProfileComponent implements OnInit {
       isActive: current?.isActive ?? false,
       loginAttempts: current?.loginAttempts ?? 0,
       onboardingCompleted: current?.onboardingCompleted ?? false,
+      hasCompany: current?.hasCompany ?? false,
       companies: (current?.companies as any[]) ?? [],
       businessInfo: current?.businessInfo ?? {
-        legalName: 'N/A',
-        tradeName: 'N/A',
-        businessType: 'N/A',
-        gstin: 'N/A',
-        pan: 'N/A',
-        fssaiNumber: 'N/A',
-        gstType: 'N/A',
+        legalName: '',
+        tradeName: '',
+        businessType: '',
+        gstin: '',
+        pan: '',
+        fssaiNumber: '',
+        gstType: '',
         isGSTRegistered: false,
         tcsEnabled: false,
         tdsEnabled: false,
         rcmVendors: [],
-        businessCategory: 'N/A',
-        industryType: 'N/A',
-        mobile: 'N/A',
-        email: 'N/A',
-        website: 'N/A',
+        businessCategory: '',
+        industryType: '',
+        mobile: '',
+        email: '',
+        website: '',
         registeredAddress: {
-          line1: 'N/A',
+          line1: '',
           line2: '',
-          city: 'N/A',
-          state: 'N/A',
-          stateCode: 'N/A',
-          pinCode: 'N/A',
-          country: 'N/A'
+          city: '',
+          state: '',
+          stateCode: '',
+          pinCode: '',
+          country: ''
         },
         fyStartMonth: undefined,
         bankAccounts: []
@@ -167,17 +176,23 @@ export class ProfileComponent implements OnInit {
 
   ngOnInit(): void {
     this.syncFormWithBusinessInfo();
-    this.loadUserDetails();
-    this.loadCompanyDetails();
+    this.loadUserDetails().then(() => {
+      if (this.hasCompany()) {
+        this.loadCompanyDetails();
+      }
+    });
     this.loadBusinessCategories();
+    this.loadBusinessTypes();
+    this.loadGstTypes();
   }
 
   setTab(tab: ProfileTab): void {
     this.activeTab.set(tab);
+    this.showAddCompanyForm.set(false);
     if (tab === 'user') {
       this.loadUserDetails();
     }
-    if (tab === 'business') {
+    if (tab === 'business' && this.hasCompany()) {
       this.loadCompanyDetails();
     }
   }
@@ -195,6 +210,8 @@ export class ProfileComponent implements OnInit {
     if (!token) {
       return;
     }
+    // const user = JSON.parse(localStorage.getItem('billflow_auth_user') || '{}');
+
 
     const url = `${this.apiUrl}/api/v1/companies`;
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
@@ -238,13 +255,63 @@ export class ProfileComponent implements OnInit {
     }
   }
 
+  private async loadBusinessTypes(): Promise<void> {
+    try {
+      const url = `${this.apiUrl}/api/v1/common/businessTypes`;
+      const response = await firstValueFrom(
+        this.http.get<{ success: boolean; message: string; data?: Array<string | { label?: string; value?: string; name?: string }> }>(url)
+      );
+
+      if (response?.success && Array.isArray(response.data)) {
+        const mapped = response.data
+          .map(item => typeof item === 'string'
+            ? item
+            : item.value ?? item.label ?? item.name ?? '')
+          .filter(Boolean);
+        this.businessTypeOptions.set(mapped);
+      }
+    } catch (error) {
+      console.error('Unable to load business types', error);
+      this.toast.error(this.getApiMessage(error, 'Unable to load business types.'));
+    }
+  }
+
+  private async loadGstTypes(): Promise<void> {
+    try {
+      const url = `${this.apiUrl}/api/v1/common/gstTypes`;
+      const response = await firstValueFrom(
+        this.http.get<{ success: boolean; message: string; data?: Array<string | { label?: string; value?: string; name?: string }> }>(url)
+      );
+
+      if (response?.success && Array.isArray(response.data)) {
+        const mapped = response.data
+          .map(item => typeof item === 'string'
+            ? item
+            : item.value ?? item.label ?? item.name ?? '')
+          .filter(Boolean);
+        this.gstTypeOptions.set(mapped);
+      }
+    } catch (error) {
+      console.error('Unable to load GST types', error);
+      this.toast.error(this.getApiMessage(error, 'Unable to load GST types.'));
+    }
+  }
+
   startEdit(): void {
     this.editMode.set(true);
     this.syncFormWithBusinessInfo();
   }
 
+  startAddCompany(): void {
+    this.showAddCompanyForm.set(true);
+    this.editMode.set(true);
+    this.companyForm.reset();
+    this.syncFormWithBusinessInfo();
+  }
+
   cancelEdit(): void {
     this.editMode.set(false);
+    this.showAddCompanyForm.set(false);
     this.stateCodeDropdownOpen.set(false);
     this.stateCodeSearch.set('');
     this.companyForm.markAsPristine();
@@ -376,10 +443,11 @@ export class ProfileComponent implements OnInit {
 
       const currentUser = this.auth.currentUser();
       if (currentUser) {
-        this.auth.setCurrentUser({ ...currentUser, businessInfo: response.data });
+        this.auth.setCurrentUser({ ...currentUser, businessInfo: response.data, hasCompany: true });
       }
 
       this.editMode.set(false);
+      this.showAddCompanyForm.set(false);
       this.toast.success(response.message || 'Business details saved successfully.');
     } catch (error) {
       console.error('Business save error', error);

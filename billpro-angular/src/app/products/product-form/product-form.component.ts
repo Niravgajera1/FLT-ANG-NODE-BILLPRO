@@ -64,7 +64,7 @@ export class ProductFormComponent implements OnInit {
     valuationMethod: ['WAC', Validators.required],
     avgCost: [0, [Validators.required, Validators.min(0)]],
     isActive: [true],
-    is_Selling: [true],
+    is_selling: [true],
     notes: [''],
     companyId: ['', Validators.required],
     image: [null]
@@ -221,6 +221,7 @@ export class ProductFormComponent implements OnInit {
       valuationMethod: this.asString(item['valuationMethod']) || 'WAC',
       avgCost: this.asNumber(item['avgCost']),
       isActive: item['isActive'] !== false,
+      is_selling: this.asBoolean(item['is_selling'] ?? item['isSelling'] ?? item['is_Selling']),
       notes: this.asString(item['notes']),
       companyId: this.asString(item['companyId']) || this.getCompanyId()
     });

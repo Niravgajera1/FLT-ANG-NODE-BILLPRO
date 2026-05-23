@@ -115,6 +115,18 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./create-invoice/invoice-form.component').then(m => m.InvoiceFormComponent)
   },
+  {
+    path: 'purchase-bill',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./purchase-bill/purchase-bill.component').then(m => m.PurchaseBillComponent)
+  },
+  {
+    path: 'purchase-bill/add',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./purchase-bill/purchase-bill-form.component').then(m => m.PurchaseBillFormComponent)
+  },
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: '**', redirectTo: 'login' }
 ];

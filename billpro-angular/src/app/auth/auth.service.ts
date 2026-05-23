@@ -67,6 +67,7 @@ export interface User {
   isActive?: boolean;
   loginAttempts?: number;
   onboardingCompleted?: boolean;
+  hasCompany?: boolean;
   companies?: unknown[];
   businessInfo?: BusinessInfo;
   createdAt?: string;
@@ -405,6 +406,7 @@ export class AuthService {
           isActive: apiUser.isActive,
           loginAttempts: apiUser.loginAttempts,
           onboardingCompleted: apiUser.onboardingCompleted,
+          hasCompany: (apiUser as any).hasCompany,
           companies: apiUser.companies,
           businessInfo: apiUser.businessInfo,
           createdAt: apiUser.createdAt,
