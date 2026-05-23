@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/providers/common_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/app_toast.dart';
-import '../../../../core/providers/common_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
-import '../providers/profile_provider.dart';
 import '../../data/models/company_model.dart';
+import '../providers/profile_provider.dart';
 import 'edit_company_page.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -29,40 +29,34 @@ class _ProfilePageState extends State<ProfilePage>
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadData());
   }
 
-  Future<void> _loadData() async {
-    setState(() => _profileLoading = true);
-
-    // 1. Call GET /auth/me for fresh user data
-    final auth = context.read<AuthProvider>();
-    await auth.refreshProfile();
-
-    // 2. Load company if user has one
-    if (mounted) {
-      final user = auth.user;
-      final profile = context.read<ProfileProvider>();
-      if (user != null && user.companies.isNotEmpty) {
-        final companyId =
-            user.activeCompanyId ?? user.companies.first.companyId;
-        await profile.loadCompanyDetails(companyId);
-      } else {
-        // New user — no companies
-        await profile.loadCompanyDetails(null);
-      }
-    }
-
-    if (mounted) setState(() => _profileLoading = false);
-  }
-
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
   }
 
+  // ── 1. GET /auth/me → refresh user
+  // ── 2. GET /companies → backend resolves company from auth token
+  // ── 3. No company → hasNoCompany = true → show "Add Business"
+  Future<void> _loadData() async {
+    if (!mounted) return;
+    setState(() => _profileLoading = true);
+
+    // Step 1 — refresh user from /auth/me
+    final auth = context.read<AuthProvider>();
+    await auth.refreshProfile();
+
+    // Step 2 — load company (no companyId needed, resolved from token)
+    if (mounted) {
+      await context.read<ProfileProvider>().loadCompanyDetails();
+    }
+
+    if (mounted) setState(() => _profileLoading = false);
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final profile = context.watch<ProfileProvider>();
     final user = auth.user;
 
     return Scaffold(
@@ -71,11 +65,14 @@ class _ProfilePageState extends State<ProfilePage>
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        title: const Text('My Profile',
-            style: TextStyle(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w700,
-                fontSize: 18)),
+        title: const Text(
+          'My Profile',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+          ),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_rounded,
               color: AppColors.textPrimary, size: 20),
@@ -100,20 +97,29 @@ class _ProfilePageState extends State<ProfilePage>
           : TabBarView(
               controller: _tabController,
               children: [
-                _buildUserTab(context, user, auth),
-                _buildBusinessTab(context, profile, auth),
+                _UserDetailsTab(user: user, auth: auth),
+                _BusinessDetailsTab(onRefresh: _loadData),
               ],
             ),
     );
   }
+}
 
-  // ──────────────── User Details Tab ────────────────
-  Widget _buildUserTab(BuildContext context, dynamic user, AuthProvider auth) {
+// ════════════════════════════════════════════════════
+// TAB 1 — User Details (read-only from /auth/me)
+// ════════════════════════════════════════════════════
+class _UserDetailsTab extends StatelessWidget {
+  final dynamic user;
+  final AuthProvider auth;
+  const _UserDetailsTab({required this.user, required this.auth});
+
+  @override
+  Widget build(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
-          // Avatar Card
+          // ── Avatar card ──────────────────────────────
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(24),
@@ -132,17 +138,21 @@ class _ProfilePageState extends State<ProfilePage>
                         ? user.fullName[0].toUpperCase()
                         : 'U',
                     style: const TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary),
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 14),
-                Text(user.fullName,
-                    style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary)),
+                Text(
+                  user.fullName,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Container(
                   padding:
@@ -154,10 +164,11 @@ class _ProfilePageState extends State<ProfilePage>
                   child: Text(
                     user.role.replaceAll('_', ' ').toUpperCase(),
                     style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
-                        letterSpacing: 1.2),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary,
+                      letterSpacing: 1.2,
+                    ),
                   ),
                 ),
               ],
@@ -165,24 +176,23 @@ class _ProfilePageState extends State<ProfilePage>
           ),
           const SizedBox(height: 16),
 
-          // Detail Cards (read-only profile info from /auth/me)
-          _buildDetailGrid([
-            _DetailItem('Full Name', user.fullName),
-            _DetailItem('Email', user.email),
-            _DetailItem('Mobile', user.mobile),
-            _DetailItem('Role', user.role.replaceAll('_', ' ')),
-            _DetailItem(
-                'Email Verified', user.isEmailVerified ? 'Yes' : 'No'),
-            _DetailItem(
-                'Mobile Verified', user.isMobileVerified ? 'Yes' : 'No'),
-            _DetailItem('Account Active', user.isActive ? 'Yes' : 'No'),
-            _DetailItem('Onboarding',
+          // ── Info grid ────────────────────────────────
+          _DetailGrid(items: [
+            _Item('Full Name', user.fullName),
+            _Item('Email', user.email),
+            _Item('Mobile', user.mobile),
+            _Item('Role', user.role.replaceAll('_', ' ')),
+            _Item('Email Verified', user.isEmailVerified ? 'Yes ✓' : 'No'),
+            _Item(
+                'Mobile Verified', user.isMobileVerified ? 'Yes ✓' : 'No'),
+            _Item('Account Active', user.isActive ? 'Yes' : 'No'),
+            _Item('Onboarding',
                 user.onboardingCompleted ? 'Completed' : 'Pending'),
           ]),
 
           const SizedBox(height: 32),
 
-          // Logout
+          // ── Logout ───────────────────────────────────
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
@@ -190,12 +200,16 @@ class _ProfilePageState extends State<ProfilePage>
                 await auth.logout();
                 if (context.mounted) context.go('/login');
               },
-              icon: const Icon(Icons.logout_rounded, color: Colors.redAccent),
-              label: const Text('Logout',
-                  style: TextStyle(
-                      color: Colors.redAccent,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16)),
+              icon:
+                  const Icon(Icons.logout_rounded, color: Colors.redAccent),
+              label: const Text(
+                'Logout',
+                style: TextStyle(
+                  color: Colors.redAccent,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
+              ),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 side: const BorderSide(color: Colors.redAccent),
@@ -209,15 +223,29 @@ class _ProfilePageState extends State<ProfilePage>
       ),
     );
   }
+}
 
-  // ──────────────── Business Details Tab ────────────────
-  Widget _buildBusinessTab(
-      BuildContext context, ProfileProvider profile, AuthProvider auth) {
+// ════════════════════════════════════════════════════
+// TAB 2 — Business Details
+// GET /companies?companyId=<id>
+// POST /companies (create)
+// PUT  /companies?companyId=<id> (update)
+// ════════════════════════════════════════════════════
+class _BusinessDetailsTab extends StatelessWidget {
+  final VoidCallback onRefresh;
+  const _BusinessDetailsTab({required this.onRefresh});
+
+  @override
+  Widget build(BuildContext context) {
+    final profile = context.watch<ProfileProvider>();
+    final auth = context.read<AuthProvider>();
+
+    // Loading state
     if (profile.isLoadingCompany) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    // ── No company — show Add Business button ──
+    // ── No company → Add Business ──────────────────
     if (profile.hasNoCompany || profile.company == null) {
       return Center(
         child: Padding(
@@ -226,34 +254,42 @@ class _ProfilePageState extends State<ProfilePage>
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(28),
                 decoration: BoxDecoration(
                   color: AppColors.primarySoft,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.business_center_outlined,
-                    size: 56, color: AppColors.primary),
+                child: const Icon(
+                  Icons.business_center_outlined,
+                  size: 60,
+                  color: AppColors.primary,
+                ),
               ),
               const SizedBox(height: 24),
-              const Text('No Business Registered',
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary)),
+              const Text(
+                'No Business Registered',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
               const SizedBox(height: 8),
               const Text(
-                  'Set up your company profile to start\ncreating GST invoices.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
-                      height: 1.5)),
+                'Set up your company profile to start\ncreating GST invoices.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                  height: 1.5,
+                ),
+              ),
               const SizedBox(height: 28),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () => _openCompanyForm(
-                      context: context, company: null, auth: auth),
+                  onPressed: () =>
+                      _openForm(context, null, auth, profile, onRefresh),
                   icon: const Icon(Icons.add_business_rounded, size: 20),
                   label: const Text('Add Business'),
                   style: ElevatedButton.styleFrom(
@@ -273,7 +309,7 @@ class _ProfilePageState extends State<ProfilePage>
       );
     }
 
-    // ── Company exists — show details ──
+    // ── Company exists → Show details ──────────────
     final c = profile.company!;
 
     return SingleChildScrollView(
@@ -281,18 +317,21 @@ class _ProfilePageState extends State<ProfilePage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header with edit button
+          // Header + Edit button
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Company Profile',
-                  style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary)),
+              const Text(
+                'Company Profile',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
               ElevatedButton.icon(
                 onPressed: () =>
-                    _openCompanyForm(context: context, company: c, auth: auth),
+                    _openForm(context, c, auth, profile, onRefresh),
                 icon: const Icon(Icons.edit_outlined, size: 16),
                 label: const Text('Edit'),
                 style: ElevatedButton.styleFrom(
@@ -311,29 +350,39 @@ class _ProfilePageState extends State<ProfilePage>
           ),
           const SizedBox(height: 16),
 
-          // Company Info Grid
-          _buildDetailGrid([
-            _DetailItem('Legal Name', c.legalName),
-            _DetailItem('Trade Name', c.tradeName),
-            _DetailItem('Business Type', c.businessType),
-            _DetailItem('Business Category', c.businessCategory ?? 'N/A'),
-            _DetailItem('Industry Type', c.industryType ?? 'N/A'),
-            _DetailItem('GSTIN', c.gstin ?? 'N/A'),
-            _DetailItem('PAN', c.pan ?? 'N/A'),
-            _DetailItem('FSSAI Number', c.fssaiNumber ?? 'N/A'),
-            _DetailItem('GST Type', c.gstType ?? 'N/A'),
-            _DetailItem('GST Registered', c.isGSTRegistered ? 'Yes' : 'No'),
-            _DetailItem('TCS Enabled', c.tcsEnabled ? 'Yes' : 'No'),
-            _DetailItem('TDS Enabled', c.tdsEnabled ? 'Yes' : 'No'),
-            _DetailItem('Email', c.email ?? 'N/A'),
-            _DetailItem('Mobile', c.mobile ?? 'N/A'),
-            _DetailItem('Website', c.website ?? 'N/A'),
+          // Business info grid
+          _DetailGrid(items: [
+            _Item('Legal Name', c.legalName),
+            _Item('Trade Name', c.tradeName),
+            _Item('Business Type', c.businessType),
+            _Item('Business Category', c.businessCategory ?? 'N/A'),
+            _Item('Industry Type', c.industryType ?? 'N/A'),
+            _Item('GSTIN', c.gstin ?? 'N/A'),
+            _Item('PAN', c.pan ?? 'N/A'),
+            _Item('FSSAI Number', c.fssaiNumber ?? 'N/A'),
+            _Item('GST Type', c.gstType ?? 'N/A'),
+            _Item('GST Registered', c.isGSTRegistered ? 'Yes' : 'No'),
+            _Item('TCS Enabled', c.tcsEnabled ? 'Yes' : 'No'),
+            _Item('TDS Enabled', c.tdsEnabled ? 'Yes' : 'No'),
+            _Item('Email', c.email ?? 'N/A'),
+            _Item('Mobile', c.mobile ?? 'N/A'),
+            _Item('Website', c.website ?? 'N/A'),
+            _Item('FY Start Month', 'Month ${c.fyStartMonth}'),
           ]),
 
           const SizedBox(height: 20),
 
-          // Address Card
+          // Registered Address
           if (c.registeredAddress != null) ...[
+            const Text(
+              'Registered Address',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 12),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(18),
@@ -345,18 +394,13 @@ class _ProfilePageState extends State<ProfilePage>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('REGISTERED ADDRESS',
-                      style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primary.withValues(alpha: 0.7),
-                          letterSpacing: 1.2)),
-                  const SizedBox(height: 10),
-                  Text(c.registeredAddress!.line1 ?? '',
-                      style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary)),
+                  if (c.registeredAddress!.line1 != null &&
+                      c.registeredAddress!.line1!.isNotEmpty)
+                    Text(c.registeredAddress!.line1!,
+                        style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary)),
                   if (c.registeredAddress!.line2 != null &&
                       c.registeredAddress!.line2!.isNotEmpty)
                     Text(c.registeredAddress!.line2!,
@@ -364,13 +408,23 @@ class _ProfilePageState extends State<ProfilePage>
                             fontSize: 14, color: AppColors.textSecondary)),
                   const SizedBox(height: 4),
                   Text(
-                      '${c.registeredAddress!.city ?? ''}, ${c.registeredAddress!.pinCode ?? ''}',
-                      style: const TextStyle(
-                          fontSize: 14, color: AppColors.textPrimary)),
+                    [
+                      c.registeredAddress!.city,
+                      c.registeredAddress!.pinCode,
+                    ].where((e) => e != null && e.isNotEmpty).join(', '),
+                    style: const TextStyle(
+                        fontSize: 14, color: AppColors.textPrimary),
+                  ),
                   Text(
-                      '${c.registeredAddress!.state ?? ''} – ${c.registeredAddress!.stateCode ?? ''}',
-                      style: const TextStyle(
-                          fontSize: 14, color: AppColors.textSecondary)),
+                    [
+                      c.registeredAddress!.state,
+                      c.registeredAddress!.stateCode != null
+                          ? '(${c.registeredAddress!.stateCode})'
+                          : null,
+                    ].where((e) => e != null && e.isNotEmpty).join(' '),
+                    style: const TextStyle(
+                        fontSize: 14, color: AppColors.textSecondary),
+                  ),
                   Text(c.registeredAddress!.country ?? 'India',
                       style: const TextStyle(
                           fontSize: 14, color: AppColors.textSecondary)),
@@ -379,41 +433,40 @@ class _ProfilePageState extends State<ProfilePage>
             ),
           ],
 
-          const SizedBox(height: 20),
-
-          _buildDetailGrid([
-            _DetailItem('Financial Year Start', 'Month ${c.fyStartMonth}'),
-          ]),
-
-          const SizedBox(height: 20),
-
           // Bank Accounts
           if (c.bankAccounts.isNotEmpty) ...[
+            const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Bank Accounts',
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary)),
+                const Text(
+                  'Bank Accounts',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: AppColors.primarySoft,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text('${c.bankAccounts.length} account(s)',
-                      style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primary)),
+                  child: Text(
+                    '${c.bankAccounts.length} account(s)',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
+                    ),
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            ...c.bankAccounts.map((bank) => _buildBankCard(bank)),
+            ...c.bankAccounts.map((bank) => _BankCard(bank: bank)),
           ],
 
           const SizedBox(height: 24),
@@ -422,22 +475,23 @@ class _ProfilePageState extends State<ProfilePage>
     );
   }
 
-  // ──────────────── Open company form (create or edit) ────────────────
-  void _openCompanyForm({
-    required BuildContext context,
-    required CompanyModel? company,
-    required AuthProvider auth,
-  }) async {
-    final profileProvider = context.read<ProfileProvider>();
-    final commonProvider = context.read<CommonProvider>();
-    final nav = Navigator.of(context);
-    final result = await nav.push<bool>(
+  // Navigate to EditCompanyPage and reload on success
+  void _openForm(
+    BuildContext context,
+    CompanyModel? company,
+    AuthProvider auth,
+    ProfileProvider profile,
+    VoidCallback onRefresh,
+  ) async {
+    final common = context.read<CommonProvider>();
+
+    final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (_) => MultiProvider(
           providers: [
-            ChangeNotifierProvider.value(value: profileProvider),
+            ChangeNotifierProvider.value(value: profile),
             ChangeNotifierProvider.value(value: auth),
-            ChangeNotifierProvider.value(value: commonProvider),
+            ChangeNotifierProvider.value(value: common),
           ],
           child: EditCompanyPage(
             company: company,
@@ -446,29 +500,87 @@ class _ProfilePageState extends State<ProfilePage>
         ),
       ),
     );
-    if (result == true && mounted) {
-      // Refresh profile to update companies list
-      await auth.refreshProfile();
-      final user = auth.user;
-      if (user != null && user.companies.isNotEmpty) {
-        final companyId =
-            user.activeCompanyId ?? user.companies.first.companyId;
-        await profileProvider.loadCompanyDetails(companyId);
-      }
-      if (mounted) {
-        // ignore: use_build_context_synchronously
-        AppToast.show(context,
-            message: company == null
-                ? 'Business created successfully!'
-                : 'Business updated successfully!',
-            type: ToastType.success);
-      }
+
+    if (result == true && context.mounted) {
+      // Reload everything after create/update
+      onRefresh();
+      AppToast.show(
+        context,
+        message: company == null
+            ? 'Business created successfully!'
+            : 'Business updated successfully!',
+        type: ToastType.success,
+      );
     }
   }
+}
 
-  // ──────────────── Helpers ────────────────
+// ════════════════════════════════════════════════════
+// Shared widgets
+// ════════════════════════════════════════════════════
+class _DetailGrid extends StatelessWidget {
+  final List<_Item> items;
+  const _DetailGrid({required this.items});
 
-  Widget _buildBankCard(BankAccount bank) {
+  @override
+  Widget build(BuildContext context) {
+    final w = (MediaQuery.of(context).size.width - 52) / 2;
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      children: items.map((item) {
+        return SizedBox(
+          width: w,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.label.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color:
+                        AppColors.textSecondary.withValues(alpha: 0.8),
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  item.value,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+
+class _Item {
+  final String label;
+  final String value;
+  const _Item(this.label, this.value);
+}
+
+class _BankCard extends StatelessWidget {
+  final BankAccount bank;
+  const _BankCard({required this.bank});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 12),
@@ -497,52 +609,62 @@ class _ProfilePageState extends State<ProfilePage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(bank.bankName,
-                        style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary)),
-                    Text(bank.accountType.toUpperCase(),
-                        style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textSecondary,
-                            letterSpacing: 0.8)),
+                    Text(
+                      bank.bankName,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    Text(
+                      bank.accountType.toUpperCase(),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
                   ],
                 ),
               ),
               if (bank.isDefault)
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: const Color(0xFFDCFCE7),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Text('Default',
-                      style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF16A34A))),
+                  child: const Text(
+                    'Default',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF16A34A),
+                    ),
+                  ),
                 ),
             ],
           ),
           const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: Divider(color: AppColors.border)),
-          _buildBankRow('Account Holder', bank.accountHolderName),
-          _buildBankRow('Account No.', bank.accountNumber),
-          _buildBankRow('IFSC', bank.ifscCode),
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Divider(color: AppColors.border),
+          ),
+          _row('Account Holder', bank.accountHolderName),
+          _row('Account No.', bank.accountNumber),
+          _row('IFSC', bank.ifscCode),
           if (bank.branchName != null && bank.branchName!.isNotEmpty)
-            _buildBankRow('Branch', bank.branchName!),
+            _row('Branch', bank.branchName!),
           if (bank.upiId != null && bank.upiId!.isNotEmpty)
-            _buildBankRow('UPI ID', bank.upiId!),
+            _row('UPI ID', bank.upiId!),
         ],
       ),
     );
   }
 
-  Widget _buildBankRow(String label, String value) {
+  Widget _row(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
@@ -550,64 +672,27 @@ class _ProfilePageState extends State<ProfilePage>
         children: [
           SizedBox(
             width: 120,
-            child: Text(label,
-                style: const TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w500)),
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
           Expanded(
-            child: Text(value,
-                style: const TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w600)),
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
-
-  Widget _buildDetailGrid(List<_DetailItem> items) {
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: items.map((item) {
-        return SizedBox(
-          width: (MediaQuery.of(context).size.width - 52) / 2,
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(item.label.toUpperCase(),
-                    style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textSecondary.withValues(alpha: 0.8),
-                        letterSpacing: 1.2)),
-                const SizedBox(height: 8),
-                Text(item.value,
-                    style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary)),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-}
-
-class _DetailItem {
-  final String label;
-  final String value;
-  const _DetailItem(this.label, this.value);
 }

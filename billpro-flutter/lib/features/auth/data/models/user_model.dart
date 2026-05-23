@@ -70,22 +70,48 @@ class UserCompany {
   final String companyId;
   final String role;
   final bool isOwner;
+  // Extra info from nested object (populated when API returns full company object)
+  final String? legalName;
+  final String? tradeName;
 
   const UserCompany({
     required this.companyId,
     required this.role,
     this.isOwner = false,
+    this.legalName,
+    this.tradeName,
   });
 
-  factory UserCompany.fromJson(Map<String, dynamic> json) => UserCompany(
-        companyId: json['companyId'] ?? '',
-        role: json['role'] ?? '',
-        isOwner: json['isOwner'] ?? false,
-      );
+  factory UserCompany.fromJson(Map<String, dynamic> json) {
+    // companyId can be a plain String OR a nested object like
+    // {"_id": "...", "legalName": "...", "tradeName": "..."}
+    final rawCompanyId = json['companyId'];
+    String extractedId = '';
+    String? legalName;
+    String? tradeName;
+
+    if (rawCompanyId is Map<String, dynamic>) {
+      extractedId = rawCompanyId['_id']?.toString() ?? '';
+      legalName = rawCompanyId['legalName']?.toString();
+      tradeName = rawCompanyId['tradeName']?.toString();
+    } else if (rawCompanyId is String) {
+      extractedId = rawCompanyId;
+    }
+
+    return UserCompany(
+      companyId: extractedId,
+      role: json['role']?.toString() ?? '',
+      isOwner: json['isOwner'] ?? false,
+      legalName: legalName,
+      tradeName: tradeName,
+    );
+  }
 
   Map<String, dynamic> toJson() => {
         'companyId': companyId,
         'role': role,
         'isOwner': isOwner,
+        if (legalName != null) 'legalName': legalName,
+        if (tradeName != null) 'tradeName': tradeName,
       };
 }

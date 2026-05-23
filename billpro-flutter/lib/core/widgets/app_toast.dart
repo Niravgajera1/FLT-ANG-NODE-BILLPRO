@@ -24,7 +24,29 @@ class AppToast {
 
     overlay.insert(entry);
   }
+
+  /// Safe to use after async gaps — pass ScaffoldMessenger.of(context) before the await
+  static void showOnMessenger(
+    ScaffoldMessengerState messenger, {
+    required String message,
+    ToastType type = ToastType.info,
+    Duration duration = const Duration(seconds: 3),
+  }) {
+    messenger.showSnackBar(SnackBar(
+      content: Text(message),
+      backgroundColor: switch (type) {
+        ToastType.success => AppColors.success,
+        ToastType.error => AppColors.error,
+        ToastType.warning => AppColors.warning,
+        ToastType.info => AppColors.primary,
+      },
+      behavior: SnackBarBehavior.floating,
+      duration: duration,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    ));
+  }
 }
+
 
 class _ToastWidget extends StatefulWidget {
   final String message;

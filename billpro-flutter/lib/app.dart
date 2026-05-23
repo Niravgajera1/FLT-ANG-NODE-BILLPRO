@@ -12,6 +12,8 @@ import 'features/auth/presentation/pages/forgot_password_page.dart';
 import 'features/auth/presentation/pages/reset_password_page.dart';
 import 'features/home/presentation/pages/home_page.dart';
 import 'features/profile/presentation/pages/profile_page.dart';
+import 'features/customer/presentation/pages/customer_list_page.dart';
+import 'features/item/presentation/pages/item_list_page.dart';
 
 class BillProApp extends StatelessWidget {
   const BillProApp({super.key});
@@ -57,6 +59,8 @@ class BillProApp extends StatelessWidget {
         ),
         GoRoute(path: '/home', builder: (context, state) => const HomePage()),
         GoRoute(path: '/profile', builder: (context, state) => const ProfilePage()),
+        GoRoute(path: '/customers', builder: (context, state) => const CustomerListPage()),
+        GoRoute(path: '/items', builder: (context, state) => const ItemListPage()),
       ],
     );
 

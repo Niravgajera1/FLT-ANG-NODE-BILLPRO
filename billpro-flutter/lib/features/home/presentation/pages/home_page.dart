@@ -100,54 +100,42 @@ class HomePage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 28),
-
-                Text(
-                  'Coming in Phase 2+',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w600),
-                ),
+                Text('Quick Access',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
                 const SizedBox(height: 16),
                 ...[
-                  ('🏢', 'Company Setup', 'GSTIN, branches, bank accounts'),
-                  ('👥', 'Vendors & Customers', 'Master data management'),
-                  ('🧾', 'Sales & Purchase', 'GST invoices & bills'),
-                  ('📊', 'Dashboard', 'KPIs, charts, analytics'),
+                  (Icons.people_alt_rounded, 'Customer Directory', 'Manage customer accounts', AppColors.primary, '/customers'),
+                  (Icons.inventory_2_rounded, 'Product Catalogue', 'Products, services & inventory', const Color(0xFF059669), '/items'),
+                  (Icons.business_rounded, 'Company Profile', 'GSTIN, branches, bank accounts', const Color(0xFF7C3AED), '/profile'),
                 ].map((item) => Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 18, vertical: 14),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppColors.border),
-                        ),
-                        child: Row(
-                          children: [
-                            Text(item.$1,
-                                style: const TextStyle(fontSize: 22)),
-                            const SizedBox(width: 14),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(item.$2,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.textPrimary)),
-                                Text(item.$3,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: AppColors.textSecondary,
-                                    )),
-                              ],
-                            ),
-                          ],
-                        ),
+
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: InkWell(
+                    onTap: () => context.push(item.$5),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.border),
                       ),
-                    )),
+                      child: Row(children: [
+                        Container(padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(color: item.$4.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+                          child: Icon(item.$1, color: item.$4, size: 24)),
+                        const SizedBox(width: 16),
+                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text(item.$2, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary)),
+                          Text(item.$3, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                        ])),
+                        const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.textSecondary),
+                      ]),
+                    ),
+                  ),
+                )),
               ],
+
             ),
           ),
         ),

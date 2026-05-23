@@ -192,7 +192,7 @@ class _EditCompanyPageState extends State<EditCompanyPage> {
       final result = await profile.createCompany(payload);
       success = result != null;
     } else {
-      success = await profile.updateCompany(payload);
+      success = await profile.updateCompany(widget.company!.id, payload);
     }
 
     if (!mounted) return;

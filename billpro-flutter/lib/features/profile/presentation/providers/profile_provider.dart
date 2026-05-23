@@ -30,30 +30,21 @@ class ProfileProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Load company by ID. If companyId is empty or API returns null, sets hasNoCompany = true.
-  Future<void> loadCompanyDetails(String? companyId) async {
+  /// GET /companies — backend resolves company from auth token
+  Future<void> loadCompanyDetails() async {
     _isLoadingCompany = true;
     _errorMessage = null;
     _hasNoCompany = false;
     notifyListeners();
 
-    if (companyId == null || companyId.isEmpty) {
-      _hasNoCompany = true;
-      _company = null;
-      _isLoadingCompany = false;
-      notifyListeners();
-      return;
-    }
-
     try {
-      _company = await _repository.getCompanyDetails(companyId);
+      _company = await _repository.getCompanyDetails();
       if (_company == null) {
         _hasNoCompany = true;
       }
     } on ServerException catch (e) {
-      // 400 likely means no company
       _hasNoCompany = true;
-      _errorMessage = null; // Don't show error for new users
+      _errorMessage = null;
       debugPrint('loadCompanyDetails: ${e.message}');
     } catch (e) {
       _hasNoCompany = true;
@@ -91,13 +82,13 @@ class ProfileProvider extends ChangeNotifier {
   }
 
   /// PUT /companies — update existing company
-  Future<bool> updateCompany(Map<String, dynamic> data) async {
+  Future<bool> updateCompany(String companyId, Map<String, dynamic> data) async {
     _isUpdating = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      _company = await _repository.updateCompany(data);
+      _company = await _repository.updateCompany(companyId, data);
       _successMessage = 'Company updated successfully';
       _isUpdating = false;
       notifyListeners();

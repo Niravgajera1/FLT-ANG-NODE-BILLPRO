@@ -10,13 +10,10 @@ class ProfileRepository {
 
   ProfileRepository({required DioClient dioClient}) : _dioClient = dioClient;
 
-  /// GET /companies?companyId=...
-  Future<CompanyModel?> getCompanyDetails(String companyId) async {
+  /// GET /companies  — backend resolves company from auth token/headers
+  Future<CompanyModel?> getCompanyDetails() async {
     try {
-      final response = await _dioClient.dio.get(
-        ApiEndpoints.companies,
-        queryParameters: {'companyId': companyId},
-      );
+      final response = await _dioClient.dio.get(ApiEndpoints.companies);
 
       final data = response.data['data'];
       if (data == null) return null;
@@ -28,7 +25,7 @@ class ProfileRepository {
 
       return CompanyModel.fromJson(data);
     } on DioException catch (e) {
-      // 400 = no company context = new user with no company
+      // 400 = no company context = new user with no company yet
       if (e.response?.statusCode == 400) return null;
       throw handleDioError(e);
     }
@@ -49,10 +46,11 @@ class ProfileRepository {
   }
 
   /// PUT /companies — update existing company
-  Future<CompanyModel> updateCompany(Map<String, dynamic> data) async {
+  Future<CompanyModel> updateCompany(String companyId, Map<String, dynamic> data) async {
     try {
       final response = await _dioClient.dio.put(
         ApiEndpoints.companies,
+        queryParameters: {'companyId': companyId},
         data: data,
       );
       return CompanyModel.fromJson(response.data['data']);

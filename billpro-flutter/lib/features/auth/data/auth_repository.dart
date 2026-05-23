@@ -133,7 +133,20 @@ class AuthRepository {
       final response = await _dioClient.dio.get(ApiEndpoints.me);
       final user = UserModel.fromJson(response.data['data']);
 
+      // Update cached user
       await _prefs.setString(AppConstants.userKey, user.toJsonString());
+
+      // Keep activeCompanyId in sync so interceptor sends correct X-Company-Id
+      if (user.activeCompanyId != null && user.activeCompanyId!.isNotEmpty) {
+        await _prefs.setString(
+            AppConstants.activeCompanyIdKey, user.activeCompanyId!);
+      } else if (user.companies.isNotEmpty) {
+        final firstId = user.companies.first.companyId;
+        if (firstId.isNotEmpty) {
+          await _prefs.setString(AppConstants.activeCompanyIdKey, firstId);
+        }
+      }
+
       return user;
     } on DioException catch (e) {
       throw handleDioError(e);
