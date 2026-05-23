@@ -13,6 +13,12 @@ const logger = require('./utils/logger');
 
 const app = express();
 
+// Trust proxy for rate limiting (needed behind reverse proxies like Render/Heroku/AWS ALB)
+app.set('trust proxy', 1);
+
+// HTTP request logger to show real-time logs on the server console
+app.use(morgan('dev'));
+
 // ─── Security Middleware ──────────────────────────────────────────────────────
 app.use(helmet());
 app.use(mongoSanitize());  // Prevent NoSQL injection
