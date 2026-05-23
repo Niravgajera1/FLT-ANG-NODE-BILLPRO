@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../../../core/error/exceptions.dart';
 import '../../data/item_repository.dart';
+import '../../data/models/item_category_model.dart';
 import '../../data/models/item_model.dart';
 
 enum ItemFilter { all, product, service }
@@ -13,6 +14,9 @@ class ItemProvider extends ChangeNotifier {
 
   List<ItemModel> _items = [];
   List<ItemModel> _filtered = [];
+  List<ItemCategoryModel> _categories = [];
+  List<ItemCategoryModel> _categoryOptions = [];
+
   bool _isLoading = false;
   bool _isSaving = false;
   String? _errorMessage;
@@ -20,6 +24,8 @@ class ItemProvider extends ChangeNotifier {
   ItemFilter _filter = ItemFilter.all;
 
   List<ItemModel> get items => _filtered;
+  List<ItemCategoryModel> get categories => _categories;
+  List<ItemCategoryModel> get categoryOptions => _categoryOptions;
   bool get isLoading => _isLoading;
   bool get isSaving => _isSaving;
   String? get errorMessage => _errorMessage;
@@ -32,12 +38,12 @@ class ItemProvider extends ChangeNotifier {
 
   void setFilter(ItemFilter f) { _filter = f; _applyFilter(); notifyListeners(); }
 
-  Future<void> loadItems() async {
+  Future<void> loadItems({String? type}) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
     try {
-      _items = await _repository.getItems();
+      _items = await _repository.getItems(itemType: type ?? '');
       _applyFilter();
     } on ServerException catch (e) {
       _errorMessage = e.message;
@@ -116,6 +122,101 @@ class ItemProvider extends ChangeNotifier {
       _items[idx] = item;
       _errorMessage = 'Failed to update status';
       _applyFilter(); notifyListeners();
+    }
+  }
+
+  // ── CATEGORIES ────────────────────────────────────────────────────────────
+
+  Future<void> loadCategoryOptions() async {
+    try {
+      _categoryOptions = await _repository.getCategoryOptions();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('loadCategoryOptions error: $e');
+    }
+  }
+
+  Future<void> loadCategories() async {
+    try {
+      _categories = await _repository.getCategories();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('loadCategories error: $e');
+    }
+  }
+
+  Future<bool> addCategory(String name, String? desc) async {
+    _isSaving = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      final newCat = await _repository.addCategory({'name': name, 'description': desc});
+      _categories.insert(0, newCat);
+      loadCategoryOptions(); // Sync options
+      _isSaving = false;
+      notifyListeners();
+      return true;
+    } on ServerException catch (e) {
+      _errorMessage = e.message;
+      _isSaving = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = 'Failed to add category';
+      _isSaving = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> updateCategory(String id, String name, String? desc) async {
+    _isSaving = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      final updatedCat = await _repository.updateCategory(id, {'name': name, 'description': desc});
+      final idx = _categories.indexWhere((c) => c.id == id);
+      if (idx != -1) {
+        _categories[idx] = updatedCat;
+      }
+      loadCategoryOptions(); // Sync options
+      _isSaving = false;
+      notifyListeners();
+      return true;
+    } on ServerException catch (e) {
+      _errorMessage = e.message;
+      _isSaving = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = 'Failed to update category';
+      _isSaving = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> deleteCategory(String id) async {
+    _isSaving = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      await _repository.deleteCategory(id);
+      _categories.removeWhere((c) => c.id == id);
+      loadCategoryOptions(); // Sync options
+      _isSaving = false;
+      notifyListeners();
+      return true;
+    } on ServerException catch (e) {
+      _errorMessage = e.message;
+      _isSaving = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = 'Failed to delete category';
+      _isSaving = false;
+      notifyListeners();
+      return false;
     }
   }
 }

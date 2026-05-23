@@ -9,6 +9,7 @@ import '../../../../core/widgets/app_text_field.dart';
 import '../../../../core/widgets/app_toast.dart';
 import '../../data/models/item_model.dart';
 import '../providers/item_provider.dart';
+import '../widgets/category_management_dialog.dart';
 
 class AddEditItemPage extends StatefulWidget {
   final ItemModel? item;
@@ -26,7 +27,7 @@ class _AddEditItemPageState extends State<AddEditItemPage> {
   late final TextEditingController _name;
   late final TextEditingController _description;
   late String _itemType;
-  late final TextEditingController _category;
+  String? _categoryName;
   late final TextEditingController _brand;
   late String _unit;
 
@@ -73,7 +74,7 @@ class _AddEditItemPageState extends State<AddEditItemPage> {
     _name = TextEditingController(text: c?.name ?? '');
     _description = TextEditingController(text: c?.description ?? '');
     _itemType = c?.itemType ?? 'product';
-    _category = TextEditingController(text: c?.category ?? '');
+    _categoryName = c?.category;
     _brand = TextEditingController(text: c?.brand ?? '');
     _unit = AppConstants.units.contains(c?.unit) ? (c?.unit ?? 'pcs') : 'pcs';
     _sellingPrice = TextEditingController(text: (c?.sellingPrice ?? 0).toStringAsFixed(0));
@@ -98,11 +99,15 @@ class _AddEditItemPageState extends State<AddEditItemPage> {
     _isActive = c?.isActive ?? true;
     _isSelling = c?.isSelling ?? true;
     _notes = TextEditingController(text: c?.notes ?? '');
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ItemProvider>().loadCategoryOptions();
+    });
   }
 
   @override
   void dispose() {
-    for (final c in [_name, _description, _category, _brand, _sellingPrice,
+    for (final c in [_name, _description, _brand, _sellingPrice,
       _purchasePrice, _mrp, _hsnCode, _sacCode, _gstRate, _cessRate,
       _openingStock, _currentStock, _reorderLevel, _reorderQty,
       _warehouseLocation, _avgCost, _notes]) { c.dispose(); }
@@ -113,7 +118,7 @@ class _AddEditItemPageState extends State<AddEditItemPage> {
     'name': _name.text.trim(),
     'description': _description.text.trim(),
     'itemType': _itemType,
-    'category': _category.text.trim(),
+    if (_categoryName != null) 'category': _categoryName,
     'brand': _brand.text.trim(),
     'unit': _unit,
     'sellingPrice': double.tryParse(_sellingPrice.text) ?? 0,
@@ -208,12 +213,21 @@ class _AddEditItemPageState extends State<AddEditItemPage> {
               ]),
               const SizedBox(height: 14),
               AppTextField(controller: _description, label: 'Description', maxLines: 2),
-              const SizedBox(height: 14),
-              Row(children: [
-                Expanded(child: AppTextField(controller: _category, label: 'Category')),
-                const SizedBox(width: 14),
-                Expanded(child: AppTextField(controller: _brand, label: 'Brand')),
+              Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                Expanded(child: _categoryDropdown(provider)),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.settings_outlined, color: AppColors.primary),
+                  tooltip: 'Manage Categories',
+                  onPressed: () => CategoryManagementDialog.show(context),
+                  style: IconButton.styleFrom(
+                    backgroundColor: AppColors.primarySoft,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.all(12),
+                  ),
+                ),
               ]),
+              AppTextField(controller: _brand, label: 'Brand'),
               const SizedBox(height: 14),
               Row(children: [
                 Expanded(child: _dropField('Unit', _unit, AppConstants.units,
@@ -371,6 +385,25 @@ class _AddEditItemPageState extends State<AddEditItemPage> {
           )),
         ),
       ]);
+
+  Widget _categoryDropdown(ItemProvider p) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    Text('Category', style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+        fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8))),
+    const SizedBox(height: 8),
+    Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      decoration: BoxDecoration(color: AppColors.bgInput,
+          borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.border)),
+      child: DropdownButtonHideUnderline(child: DropdownButton<String>(
+        value: (_categoryName != null && p.categoryOptions.any((c) => c.name == _categoryName)) ? _categoryName : null,
+        isExpanded: true,
+        hint: const Text('Select category', style: TextStyle(color: AppColors.textHint, fontSize: 14)),
+        items: p.categoryOptions.map((c) => DropdownMenuItem(value: c.name,
+            child: Text(c.name, style: const TextStyle(fontSize: 14)))).toList(),
+        onChanged: (v) => setState(() => _categoryName = v),
+      )),
+    ),
+  ]);
 
   Widget _imagePicker() => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
     Text('Image', style: Theme.of(context).textTheme.bodyMedium?.copyWith(

@@ -104,7 +104,9 @@ class HomePage extends StatelessWidget {
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
                 const SizedBox(height: 16),
                 ...[
+                  (Icons.receipt_long_rounded, 'Sales Invoices', 'Create and manage bills', const Color(0xFFD97706), '/sales'),
                   (Icons.people_alt_rounded, 'Customer Directory', 'Manage customer accounts', AppColors.primary, '/customers'),
+                  (Icons.local_shipping_rounded, 'Vendor Directory', 'Manage vendor accounts', const Color(0xFFE11D48), '/vendors'),
                   (Icons.inventory_2_rounded, 'Product Catalogue', 'Products, services & inventory', const Color(0xFF059669), '/items'),
                   (Icons.business_rounded, 'Company Profile', 'GSTIN, branches, bank accounts', const Color(0xFF7C3AED), '/profile'),
                 ].map((item) => Padding(
