@@ -1,0 +1,99 @@
+name: billpro
+description: "BillPro - GST Billing & Accounting App for Indian SMEs"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # ─── State Management ──────────────────────────────────────────────────────
+  provider: ^6.1.5
+
+  # ─── Networking ────────────────────────────────────────────────────────────
+  dio: ^5.8.0+1
+  connectivity_plus: ^6.1.4
+
+  # ─── Local Storage ────────────────────────────────────────────────────────
+  flutter_secure_storage: ^9.2.4
+  shared_preferences: ^2.5.3
+  hive_flutter: ^1.1.0
+  hive: ^2.2.3
+
+  # ─── Navigation ────────────────────────────────────────────────────────────
+  go_router: ^15.1.2
+
+  # ─── UI / Design ──────────────────────────────────────────────────────────
+  google_fonts: ^6.2.1
+  flutter_svg: ^2.0.17
+  shimmer: ^3.0.0
+  cached_network_image: ^3.4.1
+  fl_chart: ^1.0.0
+  lottie: ^3.3.1
+
+  # ─── Forms / Validation ───────────────────────────────────────────────────
+  flutter_form_builder: ^10.0.1
+  form_builder_validators: ^11.1.0
+  intl: any
+
+  # ─── Utility ──────────────────────────────────────────────────────────────
+  json_annotation: ^4.9.0
+  freezed_annotation: ^3.0.0
+  logger: ^2.5.0
+  flutter_dotenv: ^5.2.1
+  url_launcher: ^6.3.1
+  permission_handler: ^11.4.0
+  image_picker: ^1.1.2
+  file_picker: ^10.1.7
+  path_provider: ^2.1.5
+  open_file: ^3.5.10
+  share_plus: ^10.1.4
+  package_info_plus: ^8.3.0
+  device_info_plus: ^11.4.0
+
+  # ─── PDF / Printing ───────────────────────────────────────────────────────
+  pdf: ^3.11.3
+  printing: ^5.14.3
+
+  # ─── Pin / OTP ─────────────────────────────────────────────────────────────
+  pinput: ^5.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  build_runner: ^2.4.14
+  json_serializable: ^6.9.4
+  freezed: ^3.0.3
+  flutter_launcher_icons: ^0.14.3
+  flutter_native_splash: ^2.4.6
+
+# ─── Launcher Icon Config ──────────────────────────────────────────────────────
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/icon.png"
+  min_sdk_android: 24
+  adaptive_icon_background: "#1A1A2E"
+  adaptive_icon_foreground: "assets/images/icon_foreground.png"
+
+# ─── Native Splash Config ─────────────────────────────────────────────────────
+flutter_native_splash:
+  color: "#1A1A2E"
+  image: "assets/images/splash.png"
+  android: true
+  ios: true
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/animations/
+    - .env
+
+

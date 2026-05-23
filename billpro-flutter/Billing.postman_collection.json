@@ -1,0 +1,739 @@
+{
+  "info": {
+    "_postman_id": "f34c53c6-9fc6-4aff-afd9-ca89dc148170",
+    "name": "Billing",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "26623567"
+  },
+  "item": [
+    {
+      "name": "Register user",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"fullName\": \"Nirav Gajera\",\r\n    \"email\": \"nirav@mailinator.com\",\r\n    \"mobile\": \"9876543212\",\r\n    \"password\": \"Password@123\",\r\n    \"confirmPassword\": \"Password@123\",\r\n    \"acceptTerms\": true,\r\n    \"referralCode\": \"\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8587/api/v1/auth/register",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8587",
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "register"
+          ]
+        },
+        "description": "Generated from cURL: curl -X POST http://localhost:8587/api/v1/auth/register \\\r\n  -H \"Content-Type: application/json\" \\\r\n  -d '{\r\n    \"fullName\": \"John Doe\",\r\n    \"email\": \"john.doe@example.com\",\r\n    \"mobile\": \"9876543210\",\r\n    \"password\": \"Password@123\",\r\n    \"confirmPassword\": \"Password@123\",\r\n    \"acceptTerms\": true,\r\n    \"referralCode\": \"\"\r\n  }'\r\n"
+      },
+      "response": []
+    },
+    {
+      "name": "Login User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\":\"nirav@mailinator.com\",\r\n    \"password\":\"Password@123\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8587/api/v1/auth/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8587",
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "login"
+          ]
+        },
+        "description": "Generated from cURL: curl -X POST http://localhost:8587/api/v1/auth/login \\\r\n  -H \"Content-Type: application/json\" \\\r\n  -d '{\r\n    \"email\": \"john.doe@example.com\",\r\n    \"password\": \"Password@123\"\r\n  }"
+      },
+      "response": []
+    },
+    {
+      "name": "Verify Email Otp",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"identifier\": \"nirav@mailinator.com\",\r\n    \"otp\": \"833594\",\r\n    \"purpose\": \"email_verify\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8587/api/v1/auth/verify-otp",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8587",
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "verify-otp"
+          ]
+        },
+        "description": "Generated from cURL: curl -X POST http://localhost:8587/api/v1/auth/verify-otp \\\r\n  -H \"Content-Type: application/json\" \\\r\n  -d '{\r\n    \"identifier\": \"john.doe@example.com\",\r\n    \"otp\": \"123456\",\r\n    \"purpose\": \"email_verify\"\r\n  }"
+      },
+      "response": []
+    },
+    {
+      "name": "Register Company",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{DEV Token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer YOUR_ACCESS_TOKEN_HERE"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"legalName\": \"Acme Innovations Private Limited\",\r\n    \"tradeName\": \"Acme Corp\",\r\n    \"businessType\": \"Private Limited\",\r\n    \"pan\": \"ABCDE1234F\",\r\n    \"gstin\": \"27ABCDE1234F1Z5\",\r\n    \"gstType\": \"regular\",\r\n    \"isGSTRegistered\": true,\r\n    \"fssaiNumber\": \"10020011001234\",\r\n    \"businessCategory\": \"Service\",\r\n    \"industryType\": \"Software Development\",\r\n    \"mobile\": \"9876543210\",\r\n    \"email\": \"contact@acmecorp.com\",\r\n    \"website\": \"https://www.acmecorp.com\",\r\n    \"registeredAddress\": {\r\n      \"line1\": \"123 Tech Park, Tower A\",\r\n      \"line2\": \"Phase 1, Electronic City\",\r\n      \"city\": \"Mumbai\",\r\n      \"state\": \"Maharashtra\",\r\n      \"stateCode\": \"27\",\r\n      \"pinCode\": \"400001\",\r\n      \"country\": \"India\"\r\n    },\r\n    \"tcsEnabled\": false,\r\n    \"tdsEnabled\": false,\r\n    \"fyStartMonth\": 4,\r\n    \"bankAccounts\": [\r\n      {\r\n        \"bankName\": \"HDFC Bank\",\r\n        \"accountHolderName\": \"Acme Innovations Pvt Ltd\",\r\n        \"accountNumber\": \"50200012345678\",\r\n        \"ifscCode\": \"HDFC0001234\",\r\n        \"accountType\": \"current\",\r\n        \"branchName\": \"Andheri East\",\r\n        \"branchAddress\": \"MIDC, Andheri East, Mumbai\",\r\n        \"upiId\": \"acme@hdfcbank\",\r\n        \"isDefault\": true\r\n      }\r\n    ]\r\n  }",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8587/api/v1/companies",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8587",
+          "path": [
+            "api",
+            "v1",
+            "companies"
+          ]
+        },
+        "description": "Generated from cURL: curl -X POST http://localhost:5000/api/v1/companies \\\r\n  -H \"Content-Type: application/json\" \\\r\n  -H \"Authorization: Bearer YOUR_ACCESS_TOKEN_HERE\" \\\r\n  -d '{\r\n    \"legalName\": \"Acme Innovations Private Limited\",\r\n    \"tradeName\": \"Acme Corp\",\r\n    \"businessType\": \"Private Limited\",\r\n    \"pan\": \"ABCDE1234F\",\r\n    \"gstin\": \"27ABCDE1234F1Z5\",\r\n    \"gstType\": \"regular\",\r\n    \"isGSTRegistered\": true,\r\n    \"fssaiNumber\": \"10020011001234\",\r\n    \"businessCategory\": \"Service\",\r\n    \"industryType\": \"Software Development\",\r\n    \"mobile\": \"9876543210\",\r\n    \"email\": \"contact@acmecorp.com\",\r\n    \"website\": \"https://www.acmecorp.com\",\r\n    \"registeredAddress\": {\r\n      \"line1\": \"123 Tech Park, Tower A\",\r\n      \"line2\": \"Phase 1, Electronic City\",\r\n      \"city\": \"Mumbai\",\r\n      \"state\": \"Maharashtra\",\r\n      \"stateCode\": \"27\",\r\n      \"pinCode\": \"400001\",\r\n      \"country\": \"India\"\r\n    },\r\n    \"tcsEnabled\": false,\r\n    \"tdsEnabled\": false,\r\n    \"fyStartMonth\": 4,\r\n    \"bankAccounts\": [\r\n      {\r\n        \"bankName\": \"HDFC Bank\",\r\n        \"accountHolderName\": \"Acme Innovations Pvt Ltd\",\r\n        \"accountNumber\": \"50200012345678\",\r\n        \"ifscCode\": \"HDFC0001234\",\r\n        \"accountType\": \"current\",\r\n        \"branchName\": \"Andheri East\",\r\n        \"branchAddress\": \"MIDC, Andheri East, Mumbai\",\r\n        \"upiId\": \"acme@hdfcbank\",\r\n        \"isDefault\": true\r\n      }\r\n    ]\r\n  }'\r\n"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Login User",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{DEV Token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer YOUR_ACCESS_TOKEN_HERE"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8587/api/v1/auth/me",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8587",
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "me"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Company Details",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{DEV Token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer YOUR_ACCESS_TOKEN_HERE"
+          },
+          {
+            "key": "x-company-id",
+            "value": "YOUR_COMPANY_ID_HERE",
+            "disabled": true
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8587/api/v1/companies?companyId=6a0968bc682cd26d16749d9c",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8587",
+          "path": [
+            "api",
+            "v1",
+            "companies"
+          ],
+          "query": [
+            {
+              "key": "companyId",
+              "value": "6a0968bc682cd26d16749d9c",
+              "type": "text"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Customer",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{DEV Token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer YOUR_ACCESS_TOKEN_HERE"
+          },
+          {
+            "key": "x-company-id",
+            "value": "YOUR_COMPANY_ID_HERE",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"Global Tech Distribution Pvt Ltd\",\n    \"displayName\": \"Global Tech\",\n    \"customerType\": \"B2B\",\n    \"gstin\": \"27AAACG1234D1Z5\",\n    \"pan\": \"AAACG1234D\",\n    \"isGSTRegistered\": true,\n    \"contactPerson\": \"Rajesh Kumar\",\n    \"mobile\": \"9876543210\",\n    \"email\": \"billing@globaltech.com\",\n    \"altMobile\": \"02225001234\",\n    \"website\": \"https://www.globaltech.com\",\n    \"addresses\": [\n      {\n        \"label\": \"Billing Address\",\n        \"line1\": \"404, Business Plaza, Sector 11\",\n        \"line2\": \"CBD Belapur\",\n        \"city\": \"Navi Mumbai\",\n        \"state\": \"Maharashtra\",\n        \"stateCode\": \"27\",\n        \"pinCode\": \"400614\",\n        \"country\": \"India\",\n        \"isDefault\": true\n      },\n      {\n        \"label\": \"Shipping Address\",\n        \"line1\": \"Warehouse No. 12, Logistics Park\",\n        \"line2\": \"Taloja MIDC\",\n        \"city\": \"Panvel\",\n        \"state\": \"Maharashtra\",\n        \"stateCode\": \"27\",\n        \"pinCode\": \"410208\",\n        \"country\": \"India\",\n        \"isDefault\": false\n      }\n    ],\n    \"paymentTerms\": \"Net 30\",\n    \"creditLimit\": 500000,\n    \"openingBalance\": 15000,\n    \"openingBalanceDate\": \"2026-04-01T00:00:00.000Z\",\n    \"discountPercent\": 5.5,\n    \"customerGroup\": \"Wholesale Distributors\",\n    \"tags\": [\"vip\", \"high-volume\", \"tech\"],\n    \"notes\": \"Preferred distributor. Deliver shipping address orders strictly on weekdays.\",\n    \"isActive\": true\n  }",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8587/api/v1/customers?companyId=6a0968bc682cd26d16749d9c",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8587",
+          "path": [
+            "api",
+            "v1",
+            "customers"
+          ],
+          "query": [
+            {
+              "key": "companyId",
+              "value": "6a0968bc682cd26d16749d9c",
+              "type": "text"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Customer List",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{DEV Token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8587/api/v1/customers?companyId=6a0968bc682cd26d16749d9c",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8587",
+          "path": [
+            "api",
+            "v1",
+            "customers"
+          ],
+          "query": [
+            {
+              "key": "companyId",
+              "value": "6a0968bc682cd26d16749d9c"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Resend Otp",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{DEV Token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"email\": \"nirav@mailinator.com\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8587/api/v1/auth/resend-otp",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8587",
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "resend-otp"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Forgot Password",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"email\": \"nirav@mailinator.com\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8587/api/v1/auth/forgot-password",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8587",
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "forgot-password"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Item",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{DEV Token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer <YOUR_ACCESS_TOKEN>"
+          },
+          {
+            "key": "X-Company-Id",
+            "value": "<YOUR_COMPANY_ID>",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "type": "text",
+              "key": "name",
+              "value": "Premium Wireless Mouse"
+            },
+            {
+              "type": "text",
+              "key": "description",
+              "value": "Ergonomic 2.4GHz wireless mouse with adjustable DPI and rechargeable battery."
+            },
+            {
+              "type": "text",
+              "key": "itemType",
+              "value": "product"
+            },
+            {
+              "type": "text",
+              "key": "hsnCode",
+              "value": "84716060"
+            },
+            {
+              "type": "text",
+              "key": "sacCode",
+              "value": ""
+            },
+            {
+              "type": "text",
+              "key": "category",
+              "value": "Electronics"
+            },
+            {
+              "type": "text",
+              "key": "brand",
+              "value": "Logitech"
+            },
+            {
+              "type": "text",
+              "key": "unit",
+              "value": "pcs"
+            },
+            {
+              "type": "text",
+              "key": "sellingPrice",
+              "value": "1500"
+            },
+            {
+              "type": "text",
+              "key": "purchasePrice",
+              "value": "900"
+            },
+            {
+              "type": "text",
+              "key": "mrp",
+              "value": "1999"
+            },
+            {
+              "type": "text",
+              "key": "priceInclGST",
+              "value": "false"
+            },
+            {
+              "type": "text",
+              "key": "gstRate",
+              "value": "18"
+            },
+            {
+              "type": "text",
+              "key": "cessRate",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "key": "isExempt",
+              "value": "false"
+            },
+            {
+              "type": "text",
+              "key": "itcEligibility",
+              "value": "full"
+            },
+            {
+              "type": "text",
+              "key": "trackInventory",
+              "value": "true"
+            },
+            {
+              "type": "text",
+              "key": "openingStock",
+              "value": "50"
+            },
+            {
+              "type": "text",
+              "key": "currentStock",
+              "value": "50"
+            },
+            {
+              "type": "text",
+              "key": "reorderLevel",
+              "value": "10"
+            },
+            {
+              "type": "text",
+              "key": "reorderQuantity",
+              "value": "20"
+            },
+            {
+              "type": "text",
+              "key": "warehouseLocation",
+              "value": "Aisle 4, Shelf B"
+            },
+            {
+              "type": "text",
+              "key": "batchTracking",
+              "value": "false"
+            },
+            {
+              "type": "text",
+              "key": "valuationMethod",
+              "value": "WAC"
+            },
+            {
+              "type": "text",
+              "key": "avgCost",
+              "value": "900"
+            },
+            {
+              "type": "text",
+              "key": "isActive",
+              "value": "true"
+            },
+            {
+              "type": "text",
+              "key": "notes",
+              "value": "Fragile electronic item. Handle with care."
+            },
+            {
+              "type": "file",
+              "key": "image",
+              "src": "/C:/Users/nirav/Downloads/Generated Image September 25, 2025 - 10_09AM.png"
+            },
+            {
+              "key": "companyId",
+              "value": "6a0968bc682cd26d16749d9c",
+              "type": "text",
+              "uuid": "0199004f-5a56-440a-975f-b4273df96d50"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8587/api/v1/items",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8587",
+          "path": [
+            "api",
+            "v1",
+            "items"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List Items",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{DEV Token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer <YOUR_ACCESS_TOKEN>"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8587/api/v1/items?companyId=6a0968bc682cd26d16749d9c&page=1&limit=20&search=&itemType=product&isActive=true",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8587",
+          "path": [
+            "api",
+            "v1",
+            "items"
+          ],
+          "query": [
+            {
+              "key": "companyId",
+              "value": "6a0968bc682cd26d16749d9c"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "20"
+            },
+            {
+              "key": "search",
+              "value": ""
+            },
+            {
+              "key": "itemType",
+              "value": "product"
+            },
+            {
+              "key": "isActive",
+              "value": "true"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Deactive Item",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{DEV Token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer <YOUR_ACCESS_TOKEN>"
+          },
+          {
+            "key": "X-Company-Id",
+            "value": "<YOUR_COMPANY_ID>",
+            "disabled": true
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8587/api/v1/items/6a0b41f6c3c7be5d2c8e8caf?companyId=6a0b41f6c3c7be5d2c8e8caf",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8587",
+          "path": [
+            "api",
+            "v1",
+            "items",
+            "6a0b41f6c3c7be5d2c8e8caf"
+          ],
+          "query": [
+            {
+              "key": "companyId",
+              "value": "6a0b41f6c3c7be5d2c8e8caf",
+              "type": "text"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
