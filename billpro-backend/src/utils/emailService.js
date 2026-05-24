@@ -1,16 +1,10 @@
 const nodemailer = require('nodemailer');
-const axios = require('axios');
 const logger = require('./logger');
 
 // Create a transporter using environment variables or fallback to generic SMTP settings
 let transporter;
 
 const initializeTransporter = async () => {
-  if (process.env.BREVO_API_KEY) {
-    logger.info('Brevo HTTPS REST API configured. SMTP transporter initialization skipped.');
-    return;
-  }
-
   try {
     if (process.env.NODE_ENV === 'development' && !process.env.SMTP_HOST) {
       // Generate a test ethereal account for local development if no SMTP is provided
@@ -18,10 +12,10 @@ const initializeTransporter = async () => {
       transporter = nodemailer.createTransport({
         host: 'smtp.ethereal.email',
         port: 587,
-        secure: false, // true for 465, false for other ports
+        secure: false,
         auth: {
-          user: testAccount.user, // generated ethereal user
-          pass: testAccount.pass, // generated ethereal password
+          user: testAccount.user,
+          pass: testAccount.pass,
         },
       });
       logger.info('Ethereal Mail (Test Account) initialized for development emails.');
@@ -29,7 +23,7 @@ const initializeTransporter = async () => {
       // Production / Configured SMTP
       transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
-        port: process.env.SMTP_PORT,
+        port: parseInt(process.env.SMTP_PORT, 10) || 587,
         secure: process.env.SMTP_SECURE === 'true',
         auth: {
           user: process.env.SMTP_USER,
@@ -57,42 +51,16 @@ const sendOTPEmail = async (email, otp, purpose = 'registration') => {
     // Select custom subject line based on purpose
     const subject = purpose === 'registration' ? `${otp} is your BillPro verification code` :
       purpose === 'login' ? `${otp} is your BillPro login code` :
-      purpose === 'password_reset' ? `${otp} is your BillPro password reset code` :
-      `${otp} is your BillPro code`;
+        purpose === 'password_reset' ? `${otp} is your BillPro password reset code` :
+          `${otp} is your BillPro code`;
 
     const htmlContent = getOTPEmailTemplate(otp, purpose, expiryMinutes);
-
-    // If Brevo API Key is configured, use Brevo REST API (HTTPS port 443)
-    if (process.env.BREVO_API_KEY) {
-      const response = await axios.post('https://api.brevo.com/v3/smtp/email', {
-        sender: {
-          name: process.env.EMAIL_FROM_NAME || "BillPro Team",
-          email: process.env.EMAIL_FROM || "noreply@billpro.in"
-        },
-        to: [
-          {
-            email: email
-          }
-        ],
-        subject: subject,
-        htmlContent: htmlContent
-      }, {
-        headers: {
-          'api-key': process.env.BREVO_API_KEY,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
-      });
-
-      logger.info(`Email OTP successfully sent to ${email} via Brevo REST API. Message ID: ${response.data.messageId}`);
-      return true;
-    }
 
     if (!transporter) {
       throw new Error('SMTP transporter is not initialized.');
     }
 
-    // Fallback to standard Nodemailer transport (for local Ethereal dev or production SMTP)
+    // Send standard SMTP email using Nodemailer
     const info = await transporter.sendMail({
       from: `"${process.env.EMAIL_FROM_NAME || 'BillPro Team'}" <${process.env.EMAIL_FROM || 'noreply@billpro.in'}>`,
       to: email,
@@ -105,17 +73,10 @@ const sendOTPEmail = async (email, otp, purpose = 'registration') => {
     } else {
       logger.info(`Email OTP sent to ${email} via Nodemailer`);
     }
-    
+
     return true;
   } catch (err) {
-    if (err.response) {
-      logger.error('Failed to send email OTP via Brevo REST API:', {
-        message: err.message,
-        data: err.response.data
-      });
-    } else {
-      logger.error('Failed to send email OTP:', err.message || err);
-    }
+    logger.error('Failed to send email OTP:', err.message || err);
     return false;
   }
 };
