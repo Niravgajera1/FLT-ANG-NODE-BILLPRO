@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: billqube
+    env: static
+    buildCommand: cd billpro-angular && node --max-old-space-size=400 ./node_modules/@angular/cli/bin/ng build --configuration production
+    staticPublishPath: billpro-angular/dist/billpro/browser
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
