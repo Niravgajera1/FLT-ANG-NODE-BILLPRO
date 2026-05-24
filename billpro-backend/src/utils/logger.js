@@ -26,18 +26,17 @@ const logger = winston.createLogger({
   ],
 });
 
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.combine(
-      winston.format.colorize(),
-      winston.format.printf(({ timestamp, level, message, ...meta }) => {
-        const metaStr = Object.keys(meta).length 
-          ? `\n${util.inspect(meta, { depth: 3, colors: true, compact: false })}` 
-          : '';
-        return `${timestamp} [${level}]: ${message} ${metaStr}`;
-      })
-    ),
-  }));
-}
+// Always add Console transport so logs are captured by Render, PM2, Docker, or other cloud log aggregators
+logger.add(new winston.transports.Console({
+  format: winston.format.combine(
+    winston.format.colorize(),
+    winston.format.printf(({ timestamp, level, message, ...meta }) => {
+      const metaStr = Object.keys(meta).length 
+        ? `\n${util.inspect(meta, { depth: 5, colors: process.env.NODE_ENV !== 'production', compact: false })}` 
+        : '';
+      return `${timestamp} [${level}]: ${message} ${metaStr}`;
+    })
+  ),
+}));
 
 module.exports = logger;

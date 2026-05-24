@@ -7,6 +7,18 @@ let transporter;
 
 const initializeTransporter = async () => {
   try {
+    const hasPass = !!process.env.SMTP_PASS;
+    logger.info('Initializing mail transporter...', {
+      SMTP_HOST: process.env.SMTP_HOST,
+      SMTP_PORT: process.env.SMTP_PORT,
+      SMTP_SECURE: process.env.SMTP_SECURE,
+      SMTP_USER: process.env.SMTP_USER,
+      EMAIL_FROM: process.env.EMAIL_FROM,
+      EMAIL_FROM_NAME: process.env.EMAIL_FROM_NAME,
+      hasPasswordConfigured: hasPass,
+      NODE_ENV: process.env.NODE_ENV
+    });
+
     if (process.env.NODE_ENV === 'development' && !process.env.SMTP_HOST) {
       // Generate a test ethereal account for local development if no SMTP is provided
       const testAccount = await nodemailer.createTestAccount();
@@ -31,10 +43,15 @@ const initializeTransporter = async () => {
           pass: process.env.SMTP_PASS,
         },
       });
-      logger.info('SMTP transporter successfully initialized.');
+      logger.info(`SMTP transporter successfully initialized for host: ${process.env.SMTP_HOST}`);
+    } else {
+      logger.warn('SMTP_HOST environment variable is not defined, and NODE_ENV is not development. Mail transporter will remain uninitialized!');
     }
   } catch (err) {
-    logger.warn('Failed to initialize local/fallback SMTP transporter:', err.message);
+    logger.error('Failed to initialize local/fallback SMTP transporter:', {
+      error: err.message,
+      stack: err.stack
+    });
   }
 };
 
@@ -77,7 +94,16 @@ const sendOTPEmail = async (email, otp, purpose = 'registration') => {
 
     return true;
   } catch (err) {
-    logger.error('Failed to send email OTP:', err.message || err);
+    logger.error('Failed to send email OTP:', {
+      errorMessage: err.message,
+      stack: err.stack,
+      smtpCode: err.code,
+      smtpResponseCode: err.responseCode,
+      smtpCommand: err.command,
+      smtpResponse: err.response,
+      recipientEmail: email,
+      otpPurpose: purpose
+    });
     return false;
   }
 };
