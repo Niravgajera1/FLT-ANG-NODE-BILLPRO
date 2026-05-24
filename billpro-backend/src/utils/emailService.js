@@ -73,14 +73,67 @@ const sendOTPEmail = async (email, otp, purpose = 'registration') => {
           `${otp} is your BillQube code`;
 
     const htmlContent = getOTPEmailTemplate(otp, purpose, expiryMinutes);
+    const fromName = process.env.EMAIL_FROM_NAME || 'BillQube Team';
+    const fromEmail = process.env.EMAIL_FROM || 'noreply@billqube.in';
 
-    if (!transporter) {
-      throw new Error('SMTP transporter is not initialized.');
+    // 1. Check if HTTP API Provider is configured (Highly recommended to bypass SMTP port blocks on Render Free tier)
+    const apiProvider = (process.env.EMAIL_API_PROVIDER || '').toLowerCase();
+
+    if (apiProvider === 'resend' || process.env.RESEND_API_KEY) {
+      const apiKey = process.env.RESEND_API_KEY;
+      if (!apiKey) {
+        throw new Error('Resend API key is missing (RESEND_API_KEY).');
+      }
+      logger.info(`Sending OTP email to ${email} via Resend HTTP API...`);
+
+      const response = await axios.post('https://api.resend.com/emails', {
+        from: `"${fromName}" <${fromEmail}>`,
+        to: [email],
+        subject,
+        html: htmlContent
+      }, {
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      logger.info(`Email successfully sent to ${email} via Resend HTTP API. ID: ${response.data.id}`);
+      return true;
     }
 
+    if (apiProvider === 'brevo' || process.env.BREVO_API_KEY) {
+      const apiKey = process.env.BREVO_API_KEY;
+      if (!apiKey) {
+        throw new Error('Brevo API key is missing (BREVO_API_KEY).');
+      }
+      logger.info(`Sending OTP email to ${email} via Brevo HTTP API...`);
+
+      const response = await axios.post('https://api.brevo.com/v3/smtp/email', {
+        sender: { name: fromName, email: fromEmail },
+        to: [{ email }],
+        subject,
+        htmlContent: htmlContent
+      }, {
+        headers: {
+          'api-key': apiKey,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      logger.info(`Email successfully sent to ${email} via Brevo HTTP API. Message ID: ${response.data.messageId}`);
+      return true;
+    }
+
+    // 2. Fallback to standard SMTP / Nodemailer (Note: fails on Render Free tier due to network block)
+    if (!transporter) {
+      throw new Error('SMTP transporter is not initialized and no HTTP API provider is configured.');
+    }
+
+    logger.info(`Sending OTP email to ${email} via standard SMTP...`);
     // Send standard SMTP email using Nodemailer
     const info = await transporter.sendMail({
-      from: `"${process.env.EMAIL_FROM_NAME || 'BillQube Team'}" <${process.env.EMAIL_FROM || 'noreply@billqube.in'}>`,
+      from: `"${fromName}" <${fromEmail}>`,
       to: email,
       subject,
       html: htmlContent,
@@ -94,8 +147,10 @@ const sendOTPEmail = async (email, otp, purpose = 'registration') => {
 
     return true;
   } catch (err) {
+    const httpResponseData = err.response?.data;
     logger.error('Failed to send email OTP:', {
       errorMessage: err.message,
+      httpResponse: httpResponseData,
       stack: err.stack,
       smtpCode: err.code,
       smtpResponseCode: err.responseCode,
