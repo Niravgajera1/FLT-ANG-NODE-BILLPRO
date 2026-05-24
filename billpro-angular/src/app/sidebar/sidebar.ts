@@ -7,7 +7,8 @@ import { ToastService } from '../auth/toast.service';
 interface NavItem {
   label: string;
   icon: string;
-  route: string;
+  route?: string;
+  children?: NavItem[];
 }
 
 @Component({
@@ -25,13 +26,33 @@ export class Sidebar implements OnInit, OnDestroy {
 
   readonly navItems: NavItem[] = [
     { label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
-    { label: 'Customer Details', icon: 'company', route: '/customer' },
-    { label: 'Vendor Details', icon: 'vendor', route: '/vendor' },
-    { label: 'Product Details', icon: 'product', route: '/products' },
-    { label: 'Create Invoice', icon: 'invoice', route: '/create-invoice' },
-    { label: 'Purchase Bill', icon: 'purchase', route: '/purchase-bill' },
-    { label: 'Product Categories', icon: 'category', route: '/category' },
+    {
+      label: 'Company',
+      icon: 'company',
+      children: [
+        { label: 'Customer Details', icon: 'customer', route: '/customer' },
+        { label: 'Vendor Details', icon: 'vendor', route: '/vendor' }
+      ]
+    },
+    {
+      label: 'Products',
+      icon: 'product',
+      children: [
+        { label: 'Product Details', icon: 'product', route: '/products' },
+        { label: 'Product Categories', icon: 'category', route: '/category' }
+      ]
+    },
+    {
+      label: 'Bills',
+      icon: 'bill',
+      children: [
+        { label: 'Create Invoice', icon: 'invoice', route: '/create-invoice' },
+        { label: 'Purchase Bill', icon: 'purchase', route: '/purchase-bill' }
+      ]
+    }
   ];
+
+  opened = signal<Record<string, boolean>>({});
 
   ngOnInit(): void {
     this.updateSidebarWidth();
@@ -47,6 +68,14 @@ export class Sidebar implements OnInit, OnDestroy {
       document.documentElement.style.setProperty('--app-sidebar-width', next ? '5rem' : '16rem');
       return next;
     });
+  }
+
+  toggleSubmenu(key: string): void {
+    this.opened.update(map => ({ ...map, [key]: !map[key] }));
+  }
+
+  trackByLabel(_: number, item: NavItem): string {
+    return item.label;
   }
 
   private updateSidebarWidth(): void {

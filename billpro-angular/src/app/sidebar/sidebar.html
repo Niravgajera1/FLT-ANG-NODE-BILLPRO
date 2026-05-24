@@ -32,44 +32,153 @@
   <!-- Navigation Items -->
   <nav class="flex-1 overflow-y-auto py-4">
     <div class="space-y-1 px-3">
-      @for (item of navItems; track item.route) {
-      <a [routerLink]="item.route" routerLinkActive="bg-primary-50 text-primary-600 border-r-4 border-primary-600"
-        [title]="collapsed() ? item.label : ''"
-        class="flex items-center gap-3 px-4 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition">
-        <div class="w-5 h-5 flex items-center justify-center text-gray-400 flex-shrink-0">
-          @switch(item.icon) {
-          @case('dashboard') {
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M3 12l2-2m0 0l7-4 7 4M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4m-4 0v-4a1 1 0 011-1h2a1 1 0 011 1v4">
-            </path>
-          </svg>
-          }
-          @case('company') {
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5.5m0 0H9m11 0v-3.5a3.5 3.5 0 00-7 0V21m0-7.5h.008v.008H12v-.008z">
-            </path>
-          </svg>
-          }
-          @case('product') {
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-          </svg>
-          }
-          @case('invoice') {
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-            </path>
-          </svg>
-          }
-          }
-        </div>
-        <span [class.hidden]="collapsed()" class="text-sm font-medium">{{ item.label }}</span>
-      </a>
-      }
+      <ng-container *ngFor="let item of navItems; trackBy: trackByLabel">
+        <ng-container *ngIf="item.children; else singleItem">
+          <div>
+            <button type="button" (click)="toggleSubmenu(item.label)"
+              class="w-full flex items-center gap-3 px-4 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition">
+              <div class="w-5 h-5 flex items-center justify-center text-gray-400 flex-shrink-0">
+                <ng-container *ngIf="item.icon === 'dashboard'">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M3 12l2-2m0 0l7-4 7 4M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4m-4 0v-4a1 1 0 011-1h2a1 1 0 011 1v4">
+                    </path>
+                  </svg>
+                </ng-container>
+                <ng-container *ngIf="item.icon === 'company'">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5.5m0 0H9m11 0v-3.5a3.5 3.5 0 00-7 0V21m0-7.5h.008v.008H12v-.008z">
+                    </path>
+                  </svg>
+                </ng-container>
+                <ng-container *ngIf="item.icon === 'product'">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                  </svg>
+                </ng-container>
+                <ng-container *ngIf="item.icon === 'bill'">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 8v4l3 3m6-1V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2z"></path>
+                  </svg>
+                </ng-container>
+                <ng-container *ngIf="item.icon !== 'dashboard' && item.icon !== 'company' && item.icon !== 'product' && item.icon !== 'bill'">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                  </svg>
+                </ng-container>
+              </div>
+              <span [class.hidden]="collapsed()" class="text-sm font-medium">{{ item.label }}</span>
+              <svg *ngIf="!collapsed()" [ngClass]="{ 'rotate-90': opened()[item.label] }"
+                class="ml-auto w-4 h-4 text-gray-400 transition-transform" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </button>
+
+            <div *ngIf="opened()[item.label]" class="pl-8 mt-1 space-y-1">
+              <a *ngFor="let child of item.children; trackBy: trackByLabel"
+                [routerLink]="child.route"
+                routerLinkActive="bg-primary-50 text-primary-600 border-r-4 border-primary-600"
+                [title]="collapsed() ? child.label : ''"
+                class="flex items-center gap-3 px-4 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition">
+                <div class="w-4 h-4 flex items-center justify-center text-gray-400 flex-shrink-0">
+                  <ng-container *ngIf="child.icon === 'category'">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                  </ng-container>
+                  <ng-container *ngIf="child.icon === 'purchase'">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 3h18v4H3V3zm2 7h14v11H5V10z"></path>
+                    </svg>
+                  </ng-container>
+                  <ng-container *ngIf="child.icon === 'invoice'">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                  </ng-container>
+                  <ng-container *ngIf="child.icon === 'customer' || child.icon === 'vendor'">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M16 11c1.657 0 3-1.343 3-3S17.657 5 16 5s-3 1.343-3 3 1.343 3 3 3zM6 20v-2a4 4 0 014-4h4a4 4 0 014 4v2"></path>
+                    </svg>
+                  </ng-container>
+                  <ng-container *ngIf="child.icon !== 'category' && child.icon !== 'purchase' && child.icon !== 'invoice' && child.icon !== 'customer' && child.icon !== 'vendor'">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                  </ng-container>
+                </div>
+                <span [class.hidden]="collapsed()" class="text-sm">{{ child.label }}</span>
+              </a>
+            </div>
+          </div>
+        </ng-container>
+        <ng-template #singleItem>
+          <a [routerLink]="item.route"
+            routerLinkActive="bg-primary-50 text-primary-600 border-r-4 border-primary-600"
+            [title]="collapsed() ? item.label : ''"
+            class="flex items-center gap-3 px-4 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition">
+            <div class="w-5 h-5 flex items-center justify-center text-gray-400 flex-shrink-0">
+              <ng-container *ngIf="item.icon === 'dashboard'">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 12l2-2m0 0l7-4 7 4M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4m-4 0v-4a1 1 0 011-1h2a1 1 0 011 1v4"></path>
+                </svg>
+              </ng-container>
+              <ng-container *ngIf="item.icon === 'company'">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5.5m0 0H9m11 0v-3.5a3.5 3.5 0 00-7 0V21m0-7.5h.008v.008H12v-.008z"></path>
+                </svg>
+              </ng-container>
+              <ng-container *ngIf="item.icon === 'vendor'">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M16 11c1.657 0 3-1.343 3-3S17.657 5 16 5s-3 1.343-3 3 1.343 3 3 3zM6 20v-2a4 4 0 014-4h4a4 4 0 014 4v2"></path>
+                </svg>
+              </ng-container>
+              <ng-container *ngIf="item.icon === 'product'">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                </svg>
+              </ng-container>
+              <ng-container *ngIf="item.icon === 'invoice'">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+              </ng-container>
+              <ng-container *ngIf="item.icon === 'purchase'">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 3h18v4H3V3zm2 7h14v11H5V10z"></path>
+                </svg>
+              </ng-container>
+              <ng-container *ngIf="item.icon === 'category'">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+              </ng-container>
+              <ng-container
+                *ngIf="item.icon !== 'dashboard' && item.icon !== 'company' && item.icon !== 'vendor' && item.icon !== 'product' && item.icon !== 'invoice' && item.icon !== 'purchase' && item.icon !== 'category'">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+              </ng-container>
+            </div>
+            <span [class.hidden]="collapsed()" class="text-sm font-medium">{{ item.label }}</span>
+          </a>
+        </ng-template>
+      </ng-container>
     </div>
   </nav>
 

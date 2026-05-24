@@ -206,7 +206,7 @@ export class ProductsComponent implements OnInit {
       id: this.asString(value['_id'] ?? value['id']),
       name: this.asString(value['name']),
       itemType: this.asString(value['itemType']),
-      category: this.asString(value['category']),
+      category: this.extractCategoryName(value['category'] ?? value['categoryId']),
       brand: this.asString(value['brand']) || '-',
       unit: this.asString(value['unit']),
       sellingPrice: this.asNumber(value['sellingPrice']),
@@ -215,6 +215,18 @@ export class ProductsComponent implements OnInit {
       reorderLevel: this.asNumber(value['reorderLevel']),
       isActive: value['isActive'] !== false
     };
+  }
+
+  private extractCategoryName(value: unknown): string {
+    if (typeof value === 'string') return value;
+    if (value && typeof value === 'object') {
+      const record = value as Record<string, unknown>;
+      if (typeof record['name'] === 'string' && record['name']) return record['name'];
+      if (typeof record['label'] === 'string' && record['label']) return record['label'];
+      // fallback to id-like fields if no name available
+      return this.asString(record['_id'] ?? record['id'] ?? record['value']);
+    }
+    return '';
   }
 
   private asString(value: unknown): string {

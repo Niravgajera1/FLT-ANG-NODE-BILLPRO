@@ -332,13 +332,14 @@ export class ProductFormComponent implements OnInit {
   }
 
   private patchProduct(item: Record<string, unknown>): void {
+    console.log(item)
     this.form.patchValue({
       name: this.asString(item['name']),
       description: this.asString(item['description']),
       itemType: this.asString(item['itemType']) || 'product',
       hsnCode: this.asString(item['hsnCode']),
       sacCode: this.asString(item['sacCode']),
-      category: this.asString(item['category']),
+    category: this.normalizeId(item['category'] ?? item['categoryId']),
       brand: this.asString(item['brand']),
       unit: this.asString(item['unit']) || 'pcs',
       sellingPrice: this.asNumber(item['sellingPrice']),
