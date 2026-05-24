@@ -1,5 +1,5 @@
 /**
- * BillPro GST Calculation Engine
+ * BillQube GST Calculation Engine
  * Handles all GST scenarios: intra-state, inter-state, RCM, composition, export
  * All amounts rounded to 2 decimal places as per GST rules
  */

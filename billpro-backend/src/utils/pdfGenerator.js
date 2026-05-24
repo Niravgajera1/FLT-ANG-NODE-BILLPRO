@@ -366,7 +366,7 @@ const generateInvoicePDF = async (invoice, company, customer) => {
 
   <div class="footer-section">
     <div>
-      Generated electronically via BillPro Software.
+      Generated electronically via BillQube Software.
     </div>
     <div class="signature-box">
       <div style="font-size: 11px; color: #475569; font-weight: bold;">For ${company.tradeName || company.legalName}</div>
@@ -746,7 +746,7 @@ const generatePurchaseBillPDF = async (bill, company, vendor) => {
 
   <div class="footer-section">
     <div>
-      Recorded electronically via BillPro Software.
+      Recorded electronically via BillQube Software.
     </div>
     <div class="signature-box">
       <div style="font-size: 11px; color: #475569; font-weight: bold;">For ${company.tradeName || company.legalName}</div>

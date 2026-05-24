@@ -1,7 +1,7 @@
 {
-  "name": "billpro-backend",
+  "name": "billqube-backend",
   "version": "1.0.0",
-  "description": "BillPro - Billing & Accounting Software Backend API",
+  "description": "BillQube - Billing & Accounting Software Backend API",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",

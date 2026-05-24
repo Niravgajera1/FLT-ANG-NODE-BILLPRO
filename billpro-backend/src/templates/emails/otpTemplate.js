@@ -1,26 +1,26 @@
 const getOTPEmailTemplate = (otp, purpose, expiryMinutes) => {
-  let title = 'BillPro Verification';
+  let title = 'BillQube Verification';
   let heading = 'Verification Required';
   let description = `Please use the code below to complete your request.`;
   let warningMessage = 'If you did not make this request, you can safely ignore this email.';
   let themeColor = '#4f46e5'; // default Indigo
 
   if (purpose === 'registration') {
-    title = 'Welcome to BillPro!';
+    title = 'Welcome to BillQube!';
     heading = 'Verify Your Email';
-    description = 'Thank you for signing up with BillPro. To activate your account and verify your email address, please use the one-time verification code below:';
-    warningMessage = 'If you did not register for a BillPro account, you can safely ignore this email.';
+    description = 'Thank you for signing up with BillQube. To activate your account and verify your email address, please use the one-time verification code below:';
+    warningMessage = 'If you did not register for a BillQube account, you can safely ignore this email.';
     themeColor = '#10b981'; // Emerald Green
   } else if (purpose === 'login') {
-    title = 'BillPro Login Verification';
+    title = 'BillQube Login Verification';
     heading = 'Login Verification Code';
-    description = 'We detected a login attempt for your BillPro account. To verify your identity and complete the login, please use the verification code below:';
+    description = 'We detected a login attempt for your BillQube account. To verify your identity and complete the login, please use the verification code below:';
     warningMessage = 'If you did not request this login code, please secure your account immediately by changing your password.';
     themeColor = '#4f46e5'; // Indigo
   } else if (purpose === 'password_reset') {
-    title = 'BillPro Password Reset';
+    title = 'BillQube Password Reset';
     heading = 'Reset Your Password';
-    description = 'You requested a password reset for your BillPro account. Use the one-time password (OTP) code below to proceed with setting up a new password:';
+    description = 'You requested a password reset for your BillQube account. Use the one-time password (OTP) code below to proceed with setting up a new password:';
     warningMessage = 'If you did not request a password reset, you can safely ignore this email. Your password will remain secure and unchanged.';
     themeColor = '#f59e0b'; // Amber/Orange
   }
@@ -109,7 +109,7 @@ const getOTPEmailTemplate = (otp, purpose, expiryMinutes) => {
   <body>
     <div class="container">
       <div class="header">
-        <h1>BillPro</h1>
+        <h1>BillQube</h1>
       </div>
       <div class="content">
         <h2>${heading}</h2>
@@ -123,7 +123,7 @@ const getOTPEmailTemplate = (otp, purpose, expiryMinutes) => {
         <p style="font-size: 13px; color: #64748b; font-style: italic;">${warningMessage}</p>
       </div>
       <div class="footer">
-        <p>&copy; ${new Date().getFullYear()} BillPro. All rights reserved.</p>
+        <p>&copy; ${new Date().getFullYear()} BillQube. All rights reserved.</p>
         <p>This is an automated message, please do not reply.</p>
       </div>
     </div>

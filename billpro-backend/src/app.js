@@ -52,7 +52,7 @@ app.use('/api/', rateLimiter);
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'ok',
-    app: 'BillPro API',
+    app: 'BillQube API',
     version: '1.0.0',
     timestamp: new Date().toISOString(),
   });

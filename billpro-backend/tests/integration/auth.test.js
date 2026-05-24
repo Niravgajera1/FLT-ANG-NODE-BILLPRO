@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const app = require('../../src/app');
 
 beforeAll(async () => {
-  await mongoose.connect(process.env.MONGO_URI_TEST || 'mongodb://localhost:27017/billpro_test');
+  await mongoose.connect(process.env.MONGO_URI_TEST || 'mongodb://localhost:27017/billqube_test');
 });
 
 afterAll(async () => {
@@ -14,7 +14,7 @@ afterAll(async () => {
 describe('POST /api/v1/auth/register', () => {
   const validUser = {
     fullName: 'Test User',
-    email: 'test@billpro.in',
+    email: 'test@billqube.in',
     mobile: '9876543210',
     password: 'Test@1234',
     confirmPassword: 'Test@1234',
@@ -58,7 +58,7 @@ describe('POST /api/v1/auth/register', () => {
 describe('POST /api/v1/auth/login', () => {
   it('should return 401 for wrong credentials', async () => {
     const res = await request(app).post('/api/v1/auth/login').send({
-      email: 'test@billpro.in',
+      email: 'test@billqube.in',
       password: 'WrongPass@123',
     });
     expect(res.statusCode).toBe(401);
