@@ -1,4 +1,4 @@
-# BillPro Backend API
+# BillQube Backend API
 
 **Billing & Accounting Software for Indian SMEs**
 Node.js + Express + MongoDB — GST-compliant REST API
@@ -8,7 +8,7 @@ Node.js + Express + MongoDB — GST-compliant REST API
 ## 📁 Project Structure
 
 ```
-billpro-backend/
+billqube-backend/
 ├── src/
 │   ├── server.js                     # Entry point
 │   ├── app.js                        # Express setup, middleware registration

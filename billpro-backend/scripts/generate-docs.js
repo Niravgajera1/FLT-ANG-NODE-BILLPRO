@@ -4,7 +4,7 @@ const app = require('../src/app'); // Import your express app
 
 const endpoints = listEndpoints(app);
 
-let markdown = `# BillPro Backend API Documentation\n\n`;
+let markdown = `# BillQube Backend API Documentation\n\n`;
 markdown += `Base URL: \`http://localhost:8587\`\n\n`;
 markdown += `This document contains dynamically extracted endpoints, grouped by modules, with expected cURL commands and standardized responses.\n\n`;
 markdown += `---\n\n`;

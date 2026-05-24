@@ -1,6 +1,7 @@
 const Item = require('./item.model');
 const fs = require('fs');
 const path = require('path');
+const mongoose = require('mongoose');
 
 const generateItemCode = async (companyId) => {
   const count = await Item.countDocuments({ companyId });
@@ -8,6 +9,9 @@ const generateItemCode = async (companyId) => {
 };
 
 const createItem = async (companyId, data) => {
+  if (data.category && !data.categoryId) {
+    data.categoryId = data.category;
+  }
   const itemCode = await generateItemCode(companyId);
   const item = await Item.create({ ...data, companyId, itemCode });
   const itemObj = item.toObject();
@@ -17,24 +21,75 @@ const createItem = async (companyId, data) => {
   return itemObj;
 };
 
-const getItems = async (companyId, { page = 1, limit = 20, search, itemType, isActive, lowStock, is_selling }) => {
-  const filter = { companyId };
-  if (isActive !== undefined) filter.isActive = isActive === 'true' || isActive === true;
-  if (is_selling !== undefined) filter.is_selling = is_selling === 'true' || is_selling === true;
-  if (itemType) filter.itemType = itemType;
-  if (lowStock === 'true') filter.isLowStock = true;
+const getItems = async (companyId, { page = 1, limit = 20, search, itemType, isActive, lowStock, is_selling, categoryId, category }) => {
+  const matchFilter = { companyId: new mongoose.Types.ObjectId(companyId) };
+  if (isActive !== undefined) {
+    matchFilter.isActive = isActive === 'true' || isActive === true;
+  }
+  if (is_selling !== undefined) {
+    matchFilter.is_selling = is_selling === 'true' || is_selling === true;
+  }
+  if (itemType) {
+    matchFilter.itemType = itemType;
+  }
+  const targetCategoryId = categoryId || category;
+  if (targetCategoryId) {
+    matchFilter.categoryId = new mongoose.Types.ObjectId(targetCategoryId);
+  }
+  if (lowStock === 'true') {
+    matchFilter.$expr = { $lte: ['$currentStock', '$reorderLevel'] };
+  }
   if (search) {
-    filter.$or = [
+    matchFilter.$or = [
       { name: { $regex: search, $options: 'i' } },
       { hsnCode: { $regex: search, $options: 'i' } },
       { sacCode: { $regex: search, $options: 'i' } },
       { itemCode: { $regex: search, $options: 'i' } },
     ];
   }
+
+  const pipeline = [
+    { $match: matchFilter },
+    {
+      $lookup: {
+        from: 'itemcategories',
+        localField: 'categoryId',
+        foreignField: '_id',
+        as: 'categoryInfo'
+      }
+    },
+    {
+      $unwind: {
+        path: '$categoryInfo',
+        preserveNullAndEmptyArrays: true
+      }
+    },
+    {
+      $addFields: {
+        categoryName: { $ifNull: ['$categoryInfo.name', ''] },
+        category_id: { $ifNull: ['$categoryInfo._id', null] },
+        categoryId: {
+          $cond: {
+            if: { $gt: [{ $type: '$categoryInfo' }, 'missing'] },
+            then: {
+              _id: '$categoryInfo._id',
+              name: '$categoryInfo.name'
+            },
+            else: null
+          }
+        }
+      }
+    },
+    { $sort: { name: 1 } },
+    { $skip: (page - 1) * limit },
+    { $limit: parseInt(limit) }
+  ];
+
   const [items, total] = await Promise.all([
-    Item.find(filter).sort({ name: 1 }).skip((page - 1) * limit).limit(parseInt(limit)).lean(),
-    Item.countDocuments(filter),
+    Item.aggregate(pipeline),
+    Item.countDocuments(matchFilter),
   ]);
+
   const itemsWithImageUrl = items.map(item => {
     if (item.image) {
       item.image = `${process.env.SITE_URL || ''}${process.env.ITEM_IMAGE || ''}${item.image}`;
@@ -45,7 +100,7 @@ const getItems = async (companyId, { page = 1, limit = 20, search, itemType, isA
 };
 
 const getItemById = async (companyId, itemId) => {
-  const item = await Item.findOne({ _id: itemId, companyId }).lean();
+  const item = await Item.findOne({ _id: itemId, companyId }).populate('categoryId').lean();
   if (!item) throw Object.assign(new Error('Item not found'), { statusCode: 404 });
   if (item.image) {
     item.image = `${process.env.SITE_URL || ''}${process.env.ITEM_IMAGE || ''}${item.image}`;
@@ -54,6 +109,9 @@ const getItemById = async (companyId, itemId) => {
 };
 
 const updateItem = async (companyId, itemId, data) => {
+  if (data.category && !data.categoryId) {
+    data.categoryId = data.category;
+  }
   if (data.image) {
     const oldItem = await Item.findOne({ _id: itemId, companyId });
     if (oldItem && oldItem.image && oldItem.image !== data.image) {
@@ -63,7 +121,7 @@ const updateItem = async (companyId, itemId, data) => {
       });
     }
   }
-  const item = await Item.findOneAndUpdate({ _id: itemId, companyId }, { $set: data }, { new: true, runValidators: true }).lean();
+  const item = await Item.findOneAndUpdate({ _id: itemId, companyId }, { $set: data }, { new: true, runValidators: true }).populate('categoryId').lean();
   if (!item) throw Object.assign(new Error('Item not found'), { statusCode: 404 });
   if (item.image) {
     item.image = `${process.env.SITE_URL || ''}${process.env.ITEM_IMAGE || ''}${item.image}`;
@@ -72,7 +130,7 @@ const updateItem = async (companyId, itemId, data) => {
 };
 
 const deleteItem = async (companyId, itemId) => {
-  const item = await Item.findOneAndUpdate({ _id: itemId, companyId }, { isActive: false }, { new: true }).lean();
+  const item = await Item.findOneAndUpdate({ _id: itemId, companyId }, { isActive: false }, { new: true }).populate('categoryId').lean();
   if (item && item.image) {
     item.image = `${process.env.SITE_URL || ''}${process.env.ITEM_IMAGE || ''}${item.image}`;
   }

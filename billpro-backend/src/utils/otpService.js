@@ -50,7 +50,7 @@ const sendOTPViaSMS = async (mobile, otp) => {
       params: {
         authkey: process.env.MSG91_AUTH_KEY,
         mobile: `91${mobile}`,
-        message: `Your BillPro OTP is ${otp}. Valid for ${process.env.OTP_EXPIRY_MINUTES || 10} minutes.`,
+        message: `Your BillQube OTP is ${otp}. Valid for ${process.env.OTP_EXPIRY_MINUTES || 10} minutes.`,
         sender: process.env.MSG91_SENDER_ID,
         otp,
         template_id: process.env.MSG91_TEMPLATE_ID,

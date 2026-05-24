@@ -13,10 +13,10 @@ const initializeTransporter = async () => {
       transporter = nodemailer.createTransport({
         host: 'smtp.ethereal.email',
         port: 587,
-        secure: false, // true for 465, false for other ports
+        secure: false,
         auth: {
-          user: testAccount.user, // generated ethereal user
-          pass: testAccount.pass, // generated ethereal password
+          user: testAccount.user,
+          pass: testAccount.pass,
         },
       });
       logger.info('Ethereal Mail (Test Account) initialized for development emails.');
@@ -24,16 +24,17 @@ const initializeTransporter = async () => {
       // Production / Configured SMTP
       transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
-        port: process.env.SMTP_PORT,
+        port: parseInt(process.env.SMTP_PORT, 10) || 587,
         secure: process.env.SMTP_SECURE === 'true',
         auth: {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASS,
         },
       });
+      logger.info('SMTP transporter successfully initialized.');
     }
   } catch (err) {
-    logger.error('Failed to initialize nodemailer transporter:', err);
+    logger.warn('Failed to initialize local/fallback SMTP transporter:', err.message);
   }
 };
 
@@ -49,45 +50,20 @@ const sendOTPEmail = async (email, otp, purpose = 'registration') => {
     const expiryMinutes = process.env.OTP_EXPIRY_MINUTES || 10;
 
     // Select custom subject line based on purpose
-    const subject = purpose === 'registration' ? `${otp} is your BillPro verification code` :
-      purpose === 'login' ? `${otp} is your BillPro login code` :
-      purpose === 'password_reset' ? `${otp} is your BillPro password reset code` :
-      `${otp} is your BillPro code`;
+    const subject = purpose === 'registration' ? `${otp} is your BillQube verification code` :
+      purpose === 'login' ? `${otp} is your BillQube login code` :
+        purpose === 'password_reset' ? `${otp} is your BillQube password reset code` :
+          `${otp} is your BillQube code`;
 
     const htmlContent = getOTPEmailTemplate(otp, purpose, expiryMinutes);
 
-    // If Resend API Key is configured, use the Resend HTTP API (avoids Render SMTP port blocking)
-    if (process.env.RESEND_API_KEY) {
-      const fromEmail = process.env.EMAIL_FROM || 'onboarding@resend.dev';
-      const fromName = process.env.EMAIL_FROM_NAME || 'BillPro';
-
-      await axios.post(
-        'https://api.resend.com/emails',
-        {
-          from: `"${fromName}" <${fromEmail}>`,
-          to: [email],
-          subject,
-          html: htmlContent,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      logger.info(`Email OTP sent to ${email} via Resend`);
-      return true;
-    }
-
-    // Fallback: SMTP / Nodemailer
     if (!transporter) {
-      throw new Error('Nodemailer transporter is not initialized and RESEND_API_KEY is not set');
+      throw new Error('SMTP transporter is not initialized.');
     }
 
+    // Send standard SMTP email using Nodemailer
     const info = await transporter.sendMail({
-      from: `"BillPro Team" <${process.env.EMAIL_FROM || 'noreply@billpro.in'}>`,
+      from: `"${process.env.EMAIL_FROM_NAME || 'BillQube Team'}" <${process.env.EMAIL_FROM || 'noreply@billqube.in'}>`,
       to: email,
       subject,
       html: htmlContent,
@@ -98,14 +74,10 @@ const sendOTPEmail = async (email, otp, purpose = 'registration') => {
     } else {
       logger.info(`Email OTP sent to ${email} via Nodemailer`);
     }
-    
+
     return true;
   } catch (err) {
-    logger.error('Failed to send email OTP:', {
-      message: err.message,
-      response: err.response?.data,
-      stack: err.stack,
-    });
+    logger.error('Failed to send email OTP:', err.message || err);
     return false;
   }
 };

@@ -68,8 +68,8 @@ userSchema.pre('save', async function () {
   const salt = await bcrypt.genSalt(12);
   const hashed = await bcrypt.hash(this.password, salt);
 
-  // Maintain password history (last 5)
-  if (this.passwordHistory.length >= 5) this.passwordHistory.shift();
+  // Maintain password history (last 1 preceding + current active = 2)
+  if (this.passwordHistory.length >= 2) this.passwordHistory.shift();
   this.passwordHistory.push(hashed);
 
   this.password = hashed;

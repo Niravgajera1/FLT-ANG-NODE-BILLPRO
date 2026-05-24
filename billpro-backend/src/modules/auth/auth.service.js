@@ -220,7 +220,7 @@ const resetPassword = async ({ token, password }) => {
   if (!user) throw Object.assign(new Error('Token is invalid or has expired'), { statusCode: 400 });
 
   const isReused = await user.isPasswordReused(password);
-  if (isReused) throw Object.assign(new Error('Cannot reuse last 5 passwords'), { statusCode: 400 });
+  if (isReused) throw Object.assign(new Error('Cannot reuse last 1 password'), { statusCode: 400 });
 
   user.password = password;
   user.passwordResetToken = undefined;
@@ -236,7 +236,7 @@ const changePassword = async (userId, { currentPassword, newPassword }) => {
   if (!isMatch) throw Object.assign(new Error('Current password is incorrect'), { statusCode: 400 });
 
   const isReused = await user.isPasswordReused(newPassword);
-  if (isReused) throw Object.assign(new Error('Cannot reuse last 5 passwords'), { statusCode: 400 });
+  if (isReused) throw Object.assign(new Error('Cannot reuse last 1 password'), { statusCode: 400 });
 
   user.password = newPassword;
   await user.save();

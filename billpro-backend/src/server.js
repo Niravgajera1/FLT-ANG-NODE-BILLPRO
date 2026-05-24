@@ -15,7 +15,7 @@ const startServer = async () => {
     const server = http.createServer(app);
 
     server.listen(PORT, () => {
-      logger.info(`🚀 BillPro API running on port ${PORT} [${process.env.NODE_ENV}]`);
+      logger.info(`🚀 BillQube API running on port ${PORT} [${process.env.NODE_ENV}]`);
     });
 
     // Graceful shutdown

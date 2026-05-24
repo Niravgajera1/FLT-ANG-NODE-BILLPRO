@@ -37,8 +37,23 @@ const createCompany = async (userId, data) => {
 };
 
 const getCompany = async (companyId, userId) => {
-  const company = await Company.findById(companyId);
+  let targetCompanyId = companyId;
+
+  // Fallback to activeCompanyId or first company associated with the user if companyId is not passed
+  if (!targetCompanyId && userId) {
+    const user = await User.findById(userId);
+    if (user) {
+      targetCompanyId = user.activeCompanyId || (user.companies && user.companies[0]?.companyId);
+    }
+  }
+
+  if (!targetCompanyId) {
+    throw Object.assign(new Error('Company ID is required'), { statusCode: 400 });
+  }
+
+  const company = await Company.findById(targetCompanyId);
   if (!company) throw Object.assign(new Error('Company not found'), { statusCode: 404 });
+  
   return company;
 };
 

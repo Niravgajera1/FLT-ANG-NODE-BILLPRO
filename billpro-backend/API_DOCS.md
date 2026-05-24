@@ -1,4 +1,4 @@
-# BillPro Backend API Documentation
+# BillQube Backend API Documentation
 
 Base URL: `http://localhost:8587`
 
