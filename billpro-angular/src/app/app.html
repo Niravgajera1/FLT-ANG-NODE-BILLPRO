@@ -1,7 +1,7 @@
 <div class="relative min-h-screen">
-  <div class="flex h-screen">
+  <div class="flex h-screen min-w-0">
     <app-sidebar *ngIf="auth.currentUser()"></app-sidebar>
-    <main class="flex-1 overflow-auto transition-all duration-300 lg:ml-[var(--app-sidebar-width,0px)]">
+    <main class="min-w-0 flex-1 overflow-auto transition-all duration-300 lg:ml-[var(--app-sidebar-width,0px)]">
       <app-header *ngIf="auth.currentUser()"></app-header>
       <router-outlet></router-outlet>
     </main>

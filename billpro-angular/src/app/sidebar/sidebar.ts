@@ -23,6 +23,7 @@ export class Sidebar implements OnInit, OnDestroy {
   private toast = inject(ToastService);
 
   collapsed = signal(false);
+  mobileOpen = signal(false);
 
   readonly navItems: NavItem[] = [
     { label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
@@ -68,6 +69,14 @@ export class Sidebar implements OnInit, OnDestroy {
       document.documentElement.style.setProperty('--app-sidebar-width', next ? '5rem' : '16rem');
       return next;
     });
+  }
+
+  toggleMobileMenu(): void {
+    this.mobileOpen.update(value => !value);
+  }
+
+  closeMobileMenu(): void {
+    this.mobileOpen.set(false);
   }
 
   toggleSubmenu(key: string): void {

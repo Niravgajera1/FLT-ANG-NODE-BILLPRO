@@ -1,95 +1,267 @@
 <div class="min-h-screen bg-slate-50 font-sans">
-
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-    <!-- Welcome Banner -->
-    <div class="mb-8 p-6 rounded-2xl bg-gradient-to-r from-primary-600 to-primary-800 text-white shadow-btn">
-      <div class="flex items-center justify-between flex-wrap gap-4">
+  <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div class="mb-6 rounded-2xl bg-gradient-to-r from-primary-600 to-primary-800 p-6 text-white shadow-btn">
+      <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 class="text-2xl font-extrabold">{{ istGreeting }}, {{ (auth.currentUser()?.name?.split(' ') ?? [''])[0] }}! 👋</h1>
-          <p class="text-primary-200 text-sm mt-1">Here's what's happening with your billing today.</p>
+          <h1 class="text-2xl font-extrabold">{{ istGreeting }}, {{ (auth.currentUser()?.name?.split(' ') ?? [''])[0] }}!</h1>
+          <p class="mt-1 text-sm text-primary-100">Dashboard summary for {{ dateRangeLabel() || 'current financial year' }}</p>
         </div>
-        <button routerLink="/create-invoice/add" class="px-5 py-2.5 rounded-xl bg-white text-primary-700 text-sm font-bold
-                       hover:bg-primary-50 transition-colors shadow-sm">
-          + New Invoice
-        </button>
+        <div class="flex flex-wrap gap-3">
+          <button
+            type="button"
+            (click)="loadSummary()"
+            class="rounded-xl bg-primary-500 px-4 py-2.5 text-sm font-bold text-white ring-1 ring-white/20 transition-colors hover:bg-primary-400"
+          >
+            Refresh
+          </button>
+          <button
+            routerLink="/create-invoice/add"
+            class="rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-primary-700 shadow-sm transition-colors hover:bg-primary-50"
+          >
+            + New Invoice
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Stats Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-      @for (stat of stats; track stat.label) {
-        <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-200">
-          <div class="flex items-start justify-between mb-4">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-primary-50">
-              @if (stat.icon === 'revenue') {
-                <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-              } @else if (stat.icon === 'invoice') {
-                <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-              } @else if (stat.icon === 'pending') {
-                <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
+    @if (isLoading()) {
+      <div class="mb-6 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700">
+        Loading dashboard summary...
+      </div>
+    }
+
+    @if (errorMessage()) {
+      <div class="mb-6 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+        {{ errorMessage() }}
+      </div>
+    }
+
+    @if (summary(); as dashboard) {
+      <section class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        @for (card of kpiCards; track card.label) {
+          <article class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+            <div class="mb-4 flex items-start justify-between gap-3">
+              <div class="rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-wide ring-1" [class]="toneClass(card.tone)">
+                {{ card.label }}
+              </div>
+            </div>
+            <p class="text-2xl font-extrabold text-slate-950">{{ card.value }}</p>
+            <p class="mt-2 text-sm font-medium text-slate-500">{{ card.subLabel }}</p>
+          </article>
+        }
+      </section>
+
+      <section class="mb-8 grid grid-cols-1 gap-5 xl:grid-cols-2">
+        <article class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <div class="mb-5 flex items-start justify-between gap-3">
+            <div>
+              <h2 class="text-base font-bold text-slate-950">Sales Trend</h2>
+              <p class="mt-1 text-sm text-slate-500">Sales and tax collected by month</p>
+            </div>
+            <span class="rounded-full bg-slate-50 px-3 py-1 text-xs font-bold text-slate-600">{{ dashboard.salesTrend.length }} month(s)</span>
+          </div>
+          <div class="h-72">
+            <canvas
+              baseChart
+              [type]="salesTrendType"
+              [data]="salesTrendData"
+              [options]="chartOptions"
+            ></canvas>
+          </div>
+        </article>
+
+        <article class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <div class="mb-5 flex items-start justify-between gap-3">
+            <div>
+              <h2 class="text-base font-bold text-slate-950">Sales vs Purchases</h2>
+              <p class="mt-1 text-sm text-slate-500">Revenue compared with purchase spend</p>
+            </div>
+            <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">FY view</span>
+          </div>
+          <div class="h-72">
+            <canvas
+              baseChart
+              [type]="salesVsPurchaseType"
+              [data]="salesVsPurchaseData"
+              [options]="chartOptions"
+            ></canvas>
+          </div>
+        </article>
+      </section>
+
+      <section class="mb-8 grid grid-cols-1 gap-5 lg:grid-cols-3">
+        <article class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <h2 class="text-base font-bold text-slate-950">Receivables</h2>
+          <p class="mt-4 text-3xl font-extrabold text-blue-700">{{ currency(dashboard.kpis.netReceivable.value) }}</p>
+          <p class="mt-2 text-sm text-slate-500">{{ currency(dashboard.kpis.netReceivable.overdue) }} overdue</p>
+        </article>
+
+        <article class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <h2 class="text-base font-bold text-slate-950">Payables</h2>
+          <p class="mt-4 text-3xl font-extrabold text-amber-700">{{ currency(dashboard.kpis.netPayable.value) }}</p>
+          <p class="mt-2 text-sm text-slate-500">{{ currency(dashboard.kpis.netPayable.overdue) }} overdue</p>
+        </article>
+
+        <article class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <h2 class="text-base font-bold text-slate-950">Overdue Invoices</h2>
+          <p class="mt-4 text-3xl font-extrabold text-red-600">{{ dashboard.kpis.overdueInvoices.count }}</p>
+          <p class="mt-2 text-sm text-slate-500">{{ currency(dashboard.kpis.overdueInvoices.value) }} outstanding</p>
+        </article>
+      </section>
+
+      <section class="mb-8 grid grid-cols-1 gap-5 xl:grid-cols-2">
+        <article class="flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+          <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+            <h2 class="text-base font-bold text-slate-950">Recent Sales Invoices</h2>
+            <a routerLink="/create-invoice" class="text-sm font-semibold text-primary-600 hover:text-primary-800">View all</a>
+          </div>
+          <div class="flex-1 overflow-x-auto">
+            <table class="w-full min-w-[640px]">
+              <thead class="bg-slate-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Invoice</th>
+                  <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Customer</th>
+                  <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Amount</th>
+                  <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Due</th>
+                  <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-50">
+                @for (invoice of dashboard.recentSalesInvoices; track invoice._id) {
+                  <tr class="transition-colors hover:bg-slate-50">
+                    <td class="px-6 py-4 text-sm font-bold text-primary-700">{{ invoice.invoiceNumber }}</td>
+                    <td class="px-6 py-4 text-sm font-medium text-slate-800">{{ invoice.customerName }}</td>
+                    <td class="px-6 py-4 text-sm font-bold text-slate-950">{{ currency(invoice.grandTotal) }}</td>
+                    <td class="px-6 py-4 text-sm text-slate-500">{{ formatDate(invoice.dueDate) }}</td>
+                    <td class="px-6 py-4">
+                      <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize" [class]="statusClass(invoice.status)">
+                        {{ invoice.status }}
+                      </span>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="5" class="px-6 py-8 text-center text-sm font-medium text-slate-500">No recent invoices found.</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+          <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+            <h2 class="text-base font-bold text-slate-950">Recent Purchase Bills</h2>
+            <a routerLink="/purchase-bill" class="text-sm font-semibold text-primary-600 hover:text-primary-800">View all</a>
+          </div>
+          <div class="flex-1 overflow-x-auto">
+            <table class="w-full min-w-[640px]">
+              <thead class="bg-slate-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Bill</th>
+                  <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Vendor</th>
+                  <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Amount</th>
+                  <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Due</th>
+                  <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-50">
+                @for (bill of dashboard.recentPurchaseBills; track bill._id) {
+                  <tr class="transition-colors hover:bg-slate-50">
+                    <td class="px-6 py-4">
+                      <p class="text-sm font-bold text-primary-700">{{ bill.billNumber }}</p>
+                      <p class="text-xs text-slate-500">{{ bill.vendorBillNumber }}</p>
+                    </td>
+                    <td class="px-6 py-4 text-sm font-medium text-slate-800">{{ bill.vendorName }}</td>
+                    <td class="px-6 py-4 text-sm font-bold text-slate-950">{{ currency(bill.grandTotal) }}</td>
+                    <td class="px-6 py-4 text-sm text-slate-500">{{ formatDate(bill.dueDate) }}</td>
+                    <td class="px-6 py-4">
+                      <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize" [class]="statusClass(bill.status)">
+                        {{ bill.status }}
+                      </span>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="5" class="px-6 py-8 text-center text-sm font-medium text-slate-500">No recent purchase bills found.</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+
+      <section class="grid grid-cols-1 gap-5 xl:grid-cols-3">
+        <article class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <h2 class="text-base font-bold text-slate-950">Top Customers</h2>
+          <div class="mt-5 space-y-4">
+            @for (customer of dashboard.topCustomers; track customer._id) {
+              <div class="flex items-center justify-between gap-4">
+                <div>
+                  <p class="text-sm font-bold text-slate-900">{{ customer.customerName }}</p>
+                  <p class="text-xs text-slate-500">{{ customer.invoiceCount }} invoice(s)</p>
+                </div>
+                <p class="text-sm font-extrabold text-slate-950">{{ currency(customer.totalRevenue) }}</p>
+              </div>
+            } @empty {
+              <p class="text-sm font-medium text-slate-500">No customer revenue yet.</p>
+            }
+          </div>
+        </article>
+
+        <article class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <h2 class="text-base font-bold text-slate-950">Top Selling Products</h2>
+          <div class="mt-5 space-y-4">
+            @for (product of dashboard.topSellingProducts; track product._id) {
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <p class="text-sm font-bold text-slate-900">{{ product.name }}</p>
+                  <p class="text-xs text-slate-500">{{ product.totalQuantity }} sold at avg {{ currency(product.avgUnitPrice) }}</p>
+                </div>
+                <p class="text-sm font-extrabold text-slate-950">{{ currency(product.totalRevenue) }}</p>
+              </div>
+            } @empty {
+              <p class="text-sm font-medium text-slate-500">No product sales yet.</p>
+            }
+          </div>
+        </article>
+
+        <article class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <h2 class="text-base font-bold text-slate-950">Invoice Status & Stock</h2>
+          <div class="mt-5 space-y-4">
+            @for (status of dashboard.invoiceStatus; track status._id) {
+              <div class="flex items-center justify-between gap-4">
+                <div>
+                  <p class="text-sm font-bold capitalize text-slate-900">{{ status._id }}</p>
+                  <p class="text-xs text-slate-500">{{ status.count }} invoice(s)</p>
+                </div>
+                <p class="text-sm font-extrabold text-slate-950">{{ currency(status.value) }}</p>
+              </div>
+            } @empty {
+              <p class="text-sm font-medium text-slate-500">No invoice status data.</p>
+            }
+
+            <div class="border-t border-gray-100 pt-4">
+              <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Low Stock Alerts</p>
+              @if (dashboard.lowStockAlerts.length) {
+                @for (alert of dashboard.lowStockAlerts; track alert._id || alert.name) {
+                  <p class="mt-3 text-sm font-semibold text-red-700">
+                    {{ alert.name || 'Product' }}: {{ alert.currentStock || 0 }} left
+                  </p>
+                }
               } @else {
-                <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-                </svg>
+                <p class="mt-3 text-sm font-semibold text-emerald-700">No low stock alerts.</p>
               }
             </div>
-            <span class="text-xs font-bold px-2.5 py-1 rounded-full"
-                  [class]="stat.up ? 'text-emerald-700 bg-emerald-50' : 'text-red-600 bg-red-50'">
-              {{ stat.change }}
-            </span>
           </div>
-          <p class="text-2xl font-extrabold text-gray-900">{{ stat.value }}</p>
-          <p class="text-sm text-gray-500 font-medium mt-0.5">{{ stat.label }}</p>
-        </div>
-      }
-    </div>
-
-    <!-- Recent Invoices Table -->
-    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-        <h2 class="text-base font-bold text-gray-900">Recent Invoices</h2>
-        <button class="text-sm font-semibold text-primary-600 hover:text-primary-800 transition-colors">
-          View all →
-        </button>
+        </article>
+      </section>
+    } @else if (!isLoading() && !errorMessage()) {
+      <div class="rounded-2xl border border-gray-100 bg-white p-10 text-center shadow-sm">
+        <h2 class="text-lg font-bold text-slate-950">No dashboard data yet</h2>
+        <p class="mt-2 text-sm text-slate-500">Create invoices or purchase bills to start seeing your summary.</p>
       </div>
-
-      <!-- Scrollable table -->
-      <div class="overflow-x-auto">
-        <table class="w-full min-w-[600px]">
-          <thead class="bg-gray-50/80">
-            <tr>
-              <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-3">Invoice ID</th>
-              <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-3">Client</th>
-              <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-3">Amount</th>
-              <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-3">Date</th>
-              <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-3">Status</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-50">
-            @for (inv of recentInvoices; track inv.id) {
-              <tr class="hover:bg-gray-50/60 transition-colors">
-                <td class="px-6 py-4 text-sm font-semibold text-primary-600">{{ inv.id }}</td>
-                <td class="px-6 py-4 text-sm font-medium text-gray-800">{{ inv.client }}</td>
-                <td class="px-6 py-4 text-sm font-bold text-gray-900">{{ inv.amount }}</td>
-                <td class="px-6 py-4 text-sm text-gray-500">{{ inv.date }}</td>
-                <td class="px-6 py-4">
-                  <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold" [class]="statusClass(inv.status)">
-                    {{ inv.status }}
-                  </span>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    </div>
-
+    }
   </main>
 </div>

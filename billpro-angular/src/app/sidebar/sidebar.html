@@ -222,10 +222,23 @@
       </div>
     </div>
 
-    <!-- Avatar -->
-    <div
-      class="w-7 h-7 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white text-xs font-bold">
-      {{ auth.currentUser()?.name?.charAt(0) ?? 'A' }}
+    <div class="flex items-center gap-3">
+      <button
+        type="button"
+        (click)="toggleMobileMenu()"
+        class="rounded-xl border border-gray-200 p-2 text-gray-600 transition hover:bg-gray-50"
+        aria-label="Open menu"
+      >
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+      </button>
+
+      <!-- Avatar -->
+      <div
+        class="w-7 h-7 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white text-xs font-bold">
+        {{ auth.currentUser()?.name?.charAt(0) ?? 'A' }}
+      </div>
     </div>
   </div>
 
@@ -239,3 +252,90 @@
       class="w-full pl-9 pr-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500">
   </div>
 </div>
+
+@if (mobileOpen()) {
+  <button
+    type="button"
+    class="fixed inset-0 z-40 bg-slate-900/35 lg:hidden"
+    aria-label="Close menu"
+    (click)="closeMobileMenu()"
+  ></button>
+
+  <aside class="fixed left-0 top-0 z-50 flex h-screen w-72 flex-col border-r border-gray-200 bg-white shadow-2xl lg:hidden">
+    <div class="flex items-center justify-between border-b border-gray-200 p-4">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-xl flex items-center justify-center overflow-hidden bg-transparent">
+          <img src="/assets/billqube-icon.png" alt="Billqube" class="w-6 h-6 object-contain" />
+        </div>
+        <div>
+          <p class="text-sm font-extrabold text-gray-900">BillQube</p>
+          <p class="text-xs text-gray-400">ERP Suite</p>
+        </div>
+      </div>
+      <button type="button" (click)="closeMobileMenu()" class="rounded-lg p-2 text-gray-500 hover:bg-gray-100" aria-label="Close menu">
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <nav class="flex-1 overflow-y-auto py-4">
+      <div class="space-y-1 px-3">
+        <ng-container *ngFor="let item of navItems; trackBy: trackByLabel">
+          <ng-container *ngIf="item.children; else mobileSingleItem">
+            <div>
+              <button
+                type="button"
+                (click)="toggleSubmenu(item.label)"
+                class="flex w-full items-center justify-between rounded-lg px-4 py-3 text-left text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
+              >
+                <span>{{ item.label }}</span>
+                <svg [ngClass]="{ 'rotate-90': opened()[item.label] }" class="h-4 w-4 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+              </button>
+
+              <div *ngIf="opened()[item.label]" class="mt-1 space-y-1 pl-4">
+                <a
+                  *ngFor="let child of item.children; trackBy: trackByLabel"
+                  [routerLink]="child.route"
+                  routerLinkActive="bg-primary-50 text-primary-600"
+                  (click)="closeMobileMenu()"
+                  class="block rounded-lg px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-100"
+                >
+                  {{ child.label }}
+                </a>
+              </div>
+            </div>
+          </ng-container>
+
+          <ng-template #mobileSingleItem>
+            <a
+              [routerLink]="item.route"
+              routerLinkActive="bg-primary-50 text-primary-600"
+              (click)="closeMobileMenu()"
+              class="block rounded-lg px-4 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
+            >
+              {{ item.label }}
+            </a>
+          </ng-template>
+        </ng-container>
+      </div>
+    </nav>
+
+    <div class="border-t border-gray-200 p-4">
+      <div class="flex items-center justify-between gap-3">
+        <div class="min-w-0">
+          <p class="truncate text-sm font-semibold text-gray-900">{{ auth.currentUser()?.name }}</p>
+          <p class="truncate text-xs text-gray-500">{{ auth.currentUser()?.email }}</p>
+        </div>
+        <button (click)="logout()" class="rounded-lg p-2 text-red-500 hover:bg-red-50" title="Logout">
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+}
