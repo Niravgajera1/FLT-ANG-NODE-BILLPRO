@@ -9,7 +9,7 @@ import '../../../../core/widgets/app_text_field.dart';
 import '../../../../core/widgets/app_toast.dart';
 import '../../data/models/item_model.dart';
 import '../providers/item_provider.dart';
-import '../widgets/category_management_dialog.dart';
+import 'category_management_page.dart';
 
 class AddEditItemPage extends StatefulWidget {
   final ItemModel? item;
@@ -22,6 +22,7 @@ class AddEditItemPage extends StatefulWidget {
 class _AddEditItemPageState extends State<AddEditItemPage> {
   final _formKey = GlobalKey<FormState>();
   bool get _isEdit => widget.item != null;
+  bool _isLoadingDetails = false;
 
   // Item Info
   late final TextEditingController _name;
@@ -70,40 +71,90 @@ class _AddEditItemPageState extends State<AddEditItemPage> {
   @override
   void initState() {
     super.initState();
-    final c = widget.item;
-    _name = TextEditingController(text: c?.name ?? '');
-    _description = TextEditingController(text: c?.description ?? '');
-    _itemType = c?.itemType ?? 'product';
-    _categoryName = c?.category;
-    _brand = TextEditingController(text: c?.brand ?? '');
-    _unit = AppConstants.units.contains(c?.unit) ? (c?.unit ?? 'pcs') : 'pcs';
-    _sellingPrice = TextEditingController(text: (c?.sellingPrice ?? 0).toStringAsFixed(0));
-    _purchasePrice = TextEditingController(text: (c?.purchasePrice ?? 0).toStringAsFixed(0));
-    _mrp = TextEditingController(text: (c?.mrp ?? 0).toStringAsFixed(0));
-    _hsnCode = TextEditingController(text: c?.hsnCode ?? '');
-    _sacCode = TextEditingController(text: c?.sacCode ?? '');
-    _gstRate = TextEditingController(text: (c?.gstRate ?? 0).toStringAsFixed(0));
-    _cessRate = TextEditingController(text: (c?.cessRate ?? 0).toStringAsFixed(0));
-    _itcEligibility = _itcOptions.contains(c?.itcEligibility) ? c?.itcEligibility : null;
-    _priceInclGST = c?.priceInclGST ?? false;
-    _isExempt = c?.isExempt ?? false;
-    _openingStock = TextEditingController(text: (c?.openingStock ?? 0).toStringAsFixed(0));
-    _currentStock = TextEditingController(text: (c?.currentStock ?? 0).toStringAsFixed(0));
-    _reorderLevel = TextEditingController(text: (c?.reorderLevel ?? 0).toStringAsFixed(0));
-    _reorderQty = TextEditingController(text: (c?.reorderQuantity ?? 0).toStringAsFixed(0));
-    _warehouseLocation = TextEditingController(text: c?.warehouseLocation ?? '');
-    _avgCost = TextEditingController(text: (c?.avgCost ?? 0).toStringAsFixed(0));
-    _valuationMethod = _valuationMethods.contains(c?.valuationMethod) ? (c?.valuationMethod ?? 'WAC') : 'WAC';
-    _trackInventory = c?.trackInventory ?? false;
-    _batchTracking = c?.batchTracking ?? false;
-    _isActive = c?.isActive ?? true;
-    _isSelling = c?.isSelling ?? true;
-    _notes = TextEditingController(text: c?.notes ?? '');
+    // Initialize controllers with empty/default values first
+    _name = TextEditingController();
+    _description = TextEditingController();
+    _itemType = 'product';
+    _brand = TextEditingController();
+    _unit = 'pcs';
+    _sellingPrice = TextEditingController(text: '0');
+    _purchasePrice = TextEditingController(text: '0');
+    _mrp = TextEditingController(text: '0');
+    _hsnCode = TextEditingController();
+    _sacCode = TextEditingController();
+    _gstRate = TextEditingController(text: '0');
+    _cessRate = TextEditingController(text: '0');
+    _itcEligibility = null;
+    _priceInclGST = false;
+    _isExempt = false;
+    _openingStock = TextEditingController(text: '0');
+    _currentStock = TextEditingController(text: '0');
+    _reorderLevel = TextEditingController(text: '0');
+    _reorderQty = TextEditingController(text: '0');
+    _warehouseLocation = TextEditingController();
+    _avgCost = TextEditingController(text: '0');
+    _valuationMethod = 'WAC';
+    _trackInventory = false;
+    _batchTracking = false;
+    _isActive = true;
+    _isSelling = true;
+    _notes = TextEditingController();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ItemProvider>().loadCategoryOptions();
+      if (_isEdit) {
+        _fetchItemDetails();
+      }
     });
   }
+
+  /// Fetch full item details from API and populate the form
+  Future<void> _fetchItemDetails() async {
+    setState(() => _isLoadingDetails = true);
+    final provider = context.read<ItemProvider>();
+    final fullItem = await provider.loadItemById(widget.item!.id);
+    if (fullItem != null && mounted) {
+      _populateForm(fullItem);
+    } else if (mounted) {
+      // Fallback: use the partial data from list if API fails
+      _populateForm(widget.item!);
+    }
+    if (mounted) setState(() => _isLoadingDetails = false);
+  }
+
+  /// Populate all form fields from an ItemModel
+  void _populateForm(ItemModel c) {
+    _name.text = c.name;
+    _description.text = c.description ?? '';
+    _itemType = c.itemType;
+    _categoryName = c.category;
+    _brand.text = c.brand ?? '';
+    _unit = AppConstants.units.contains(c.unit) ? c.unit : 'pcs';
+    _sellingPrice.text = c.sellingPrice.toStringAsFixed(0);
+    _purchasePrice.text = c.purchasePrice.toStringAsFixed(0);
+    _mrp.text = c.mrp.toStringAsFixed(0);
+    _hsnCode.text = c.hsnCode ?? '';
+    _sacCode.text = c.sacCode ?? '';
+    _gstRate.text = c.gstRate.toStringAsFixed(0);
+    _cessRate.text = c.cessRate.toStringAsFixed(0);
+    _itcEligibility = _itcOptions.contains(c.itcEligibility) ? c.itcEligibility : null;
+    _priceInclGST = c.priceInclGST;
+    _isExempt = c.isExempt;
+    _openingStock.text = c.openingStock.toStringAsFixed(0);
+    _currentStock.text = c.currentStock.toStringAsFixed(0);
+    _reorderLevel.text = c.reorderLevel.toStringAsFixed(0);
+    _reorderQty.text = c.reorderQuantity.toStringAsFixed(0);
+    _warehouseLocation.text = c.warehouseLocation ?? '';
+    _avgCost.text = c.avgCost.toStringAsFixed(0);
+    _valuationMethod = _valuationMethods.contains(c.valuationMethod) ? c.valuationMethod : 'WAC';
+    _trackInventory = c.trackInventory;
+    _batchTracking = c.batchTracking;
+    _isActive = c.isActive;
+    _isSelling = c.isSelling;
+    _notes.text = c.notes ?? '';
+    setState(() {});
+  }
+
 
   @override
   void dispose() {
@@ -187,7 +238,7 @@ class _AddEditItemPageState extends State<AddEditItemPage> {
           child: SizedBox(
             height: 52,
             child: ElevatedButton(
-              onPressed: provider.isSaving ? null : _onSave,
+              onPressed: (provider.isSaving || _isLoadingDetails) ? null : _onSave,
               child: provider.isSaving
                   ? const SizedBox(width: 22, height: 22,
                   child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
@@ -197,7 +248,17 @@ class _AddEditItemPageState extends State<AddEditItemPage> {
           ),
         ),
       ),
-      body: Form(
+      body: _isLoadingDetails
+          ? const Center(child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Loading item details...', style: TextStyle(
+                  fontSize: 14, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
+              ],
+            ))
+          : Form(
         key: _formKey,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -213,17 +274,34 @@ class _AddEditItemPageState extends State<AddEditItemPage> {
               ]),
               const SizedBox(height: 14),
               AppTextField(controller: _description, label: 'Description', maxLines: 2),
+              const SizedBox(height: 14),
               Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
                 Expanded(child: _categoryDropdown(provider)),
                 const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.settings_outlined, color: AppColors.primary),
-                  tooltip: 'Manage Categories',
-                  onPressed: () => CategoryManagementDialog.show(context),
-                  style: IconButton.styleFrom(
-                    backgroundColor: AppColors.primarySoft,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    padding: const EdgeInsets.all(12),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 2),
+                  child: IconButton(
+                    icon: const Icon(Icons.settings_outlined, color: AppColors.primary),
+                    tooltip: 'Manage Categories',
+                    onPressed: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ChangeNotifierProvider.value(
+                            value: context.read<ItemProvider>(),
+                            child: const CategoryManagementPage(),
+                          ),
+                        ),
+                      );
+                      if (mounted) {
+                        context.read<ItemProvider>().loadCategoryOptions();
+                      }
+                    },
+                    style: IconButton.styleFrom(
+                      backgroundColor: AppColors.primarySoft,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.all(12),
+                    ),
                   ),
                 ),
               ]),

@@ -46,6 +46,17 @@ class ItemRepository {
     }
   }
 
+  /// GET /items/:id — full item details
+  Future<ItemModel> getItemById(String id) async {
+    try {
+      final response = await _dioClient.dio.get('/items/$id');
+      return ItemModel.fromJson(response.data['data']);
+    } on DioException catch (e) {
+      debugPrint('getItemById error: ${e.response?.data}');
+      throw handleDioError(e);
+    }
+  }
+
   /// POST /items — multipart form data
   Future<ItemModel> createItem(Map<String, dynamic> fields, {File? image}) async {
     try {

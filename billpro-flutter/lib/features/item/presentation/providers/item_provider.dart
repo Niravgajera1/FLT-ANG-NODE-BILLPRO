@@ -61,6 +61,30 @@ class ItemProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Fetch full item details by ID (for edit form)
+  Future<ItemModel?> loadItemById(String id) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      final item = await _repository.getItemById(id);
+      _isLoading = false;
+      notifyListeners();
+      return item;
+    } on ServerException catch (e) {
+      _errorMessage = e.message;
+      _isLoading = false;
+      notifyListeners();
+      return null;
+    } catch (e) {
+      _errorMessage = 'Failed to load item details';
+      debugPrint('loadItemById: $e');
+      _isLoading = false;
+      notifyListeners();
+      return null;
+    }
+  }
+
   void _applyFilter() {
     List<ItemModel> base;
     switch (_filter) {
