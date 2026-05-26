@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_theme.dart';
@@ -26,8 +27,8 @@ String formatDate(DateTime? date) {
   return DateFormat('dd MMM yyyy').format(date);
 }
 
-/// Returns status color based on status string.
-dynamic statusColor(String status) {
+/// Returns status color.
+Color statusColor(String status) {
   switch (status.toLowerCase()) {
     case 'paid':
       return AppColors.paid;

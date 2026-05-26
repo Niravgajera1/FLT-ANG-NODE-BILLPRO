@@ -54,6 +54,7 @@ class ApiEndpoints {
   static const String salesAging = '/sales/aging';
 
   // Dashboard
+  static const String dashboardSummary = '/dashboard/summary';
   static const String dashboardKpis = '/dashboard/kpis';
   static const String salesTrend = '/dashboard/sales-trend';
   static const String salesVsPurchase = '/dashboard/sales-vs-purchase';

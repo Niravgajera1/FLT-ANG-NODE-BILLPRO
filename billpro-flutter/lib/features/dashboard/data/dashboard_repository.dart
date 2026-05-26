@@ -10,6 +10,9 @@ class DashboardRepository {
   DashboardRepository({required DioClient dioClient})
       : _dioClient = dioClient;
 
+  /// Fetches the complete dashboard summary.
+  /// [fyStartMonth] – Financial year start month (e.g. 4 for April).
+  /// [startDate] / [endDate] – date range in yyyy-MM-dd.
   Future<DashboardSummary> getSummary({
     int fyStartMonth = 4,
     required String startDate,

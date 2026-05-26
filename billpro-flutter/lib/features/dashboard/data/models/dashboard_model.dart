@@ -60,6 +60,8 @@ class DashboardSummary {
   }
 }
 
+// ── KPIs ──────────────────────────────────────────────────────────────────────
+
 class KpiValue {
   final double value;
   final double? change;
@@ -133,6 +135,8 @@ class DashboardKpis {
   }
 }
 
+// ── Sales Trend ───────────────────────────────────────────────────────────────
+
 class SalesTrendItem {
   final int year;
   final int month;
@@ -159,6 +163,8 @@ class SalesTrendItem {
     );
   }
 }
+
+// ── Sales vs Purchase ─────────────────────────────────────────────────────────
 
 class MonthlyTotal {
   final int year;
@@ -197,6 +203,8 @@ class SalesVsPurchase {
   }
 }
 
+// ── Top Customers ─────────────────────────────────────────────────────────────
+
 class TopCustomer {
   final String id;
   final String customerName;
@@ -220,6 +228,8 @@ class TopCustomer {
   }
 }
 
+// ── Invoice Status ────────────────────────────────────────────────────────────
+
 class InvoiceStatusItem {
   final String status;
   final int count;
@@ -239,6 +249,8 @@ class InvoiceStatusItem {
     );
   }
 }
+
+// ── Recent Sales Invoices ─────────────────────────────────────────────────────
 
 class RecentSalesInvoice {
   final String id;
@@ -280,6 +292,8 @@ class RecentSalesInvoice {
     );
   }
 }
+
+// ── Recent Purchase Bills ─────────────────────────────────────────────────────
 
 class RecentPurchaseBill {
   final String id;
@@ -325,6 +339,8 @@ class RecentPurchaseBill {
   }
 }
 
+// ── Low Stock Alerts ──────────────────────────────────────────────────────────
+
 class LowStockAlert {
   final String id;
   final String name;
@@ -347,6 +363,8 @@ class LowStockAlert {
     );
   }
 }
+
+// ── Top Selling Products ──────────────────────────────────────────────────────
 
 class TopSellingProduct {
   final String id;

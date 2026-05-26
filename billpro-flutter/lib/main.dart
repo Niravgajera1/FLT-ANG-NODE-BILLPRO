@@ -23,6 +23,9 @@ import 'features/vendor/presentation/providers/vendor_provider.dart';
 import 'features/purchase/data/purchase_repository.dart';
 import 'features/purchase/presentation/providers/purchase_provider.dart';
 
+import 'features/dashboard/data/dashboard_repository.dart';
+import 'features/dashboard/presentation/providers/dashboard_provider.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -51,6 +54,7 @@ void main() async {
   final salesRepository = SalesRepository(dioClient: dioClient, prefs: prefs);
   final vendorRepository = VendorRepository(dioClient: dioClient);
   final purchaseRepository = PurchaseRepository(dioClient: dioClient, prefs: prefs);
+  final dashboardRepository = DashboardRepository(dioClient: dioClient);
 
   runApp(
     MultiProvider(
@@ -78,6 +82,9 @@ void main() async {
         ),
         ChangeNotifierProvider(
           create: (_) => PurchaseProvider(repository: purchaseRepository),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => DashboardProvider(repository: dashboardRepository),
         ),
       ],
       child: const BillProApp(),

@@ -25,6 +25,8 @@ class DashboardProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Load dashboard summary for the current financial year.
+  /// Automatically computes FY start date and uses today as end date.
   Future<void> loadSummary() async {
     _isLoading = true;
     _errorMessage = null;
@@ -32,6 +34,7 @@ class DashboardProvider extends ChangeNotifier {
 
     try {
       final now = DateTime.now();
+      // Financial year starts in April (month 4)
       final fyStartYear = now.month >= 4 ? now.year : now.year - 1;
       final startDate = '$fyStartYear-04-01';
       final endDate = DateFormat('yyyy-MM-dd').format(now);
