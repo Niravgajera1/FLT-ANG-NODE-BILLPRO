@@ -12,11 +12,11 @@ import { ToastService } from '../auth/toast.service';
 <header class="bg-white border-b border-gray-200 sticky top-0 z-30">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
     <div class="flex items-center gap-3">
-      <div class="w-9 h-9 rounded-xl flex items-center justify-center shadow-sm overflow-hidden bg-transparent">
-        <img src="/assets/billqube-icon.png" alt="Billqube" class="w-7 h-7 object-contain" />
+      <div class="w-11 h-11 rounded-xl flex items-center justify-center shadow-sm overflow-hidden bg-transparent">
+        <img src="./assets/logo_icon-removebg.png" alt="BillCube" class="w-9 h-9 object-contain" />
       </div>
       <div>
-        <span class="text-lg font-extrabold text-gray-900 tracking-tight">BillQube</span>
+        <span class="text-lg font-extrabold text-gray-900 tracking-tight">BillCube</span>
         <span class="hidden sm:inline text-xs text-gray-400 font-medium ml-2">ERP Suite</span>
       </div>
     </div>

@@ -20,6 +20,8 @@ export class LoginComponent implements OnInit {
   showPassword = signal(false);
   isLoading = signal(false);
   isOtpLoading = signal(false);
+  loginWithOtpMode = signal(false);
+  loginOtpSent = signal(false);
   showEmailVerification = signal(false);
   otpSent = signal(false);
   private pendingCredentials = signal<{ email: string; password: string; rememberMe: boolean } | null>(null);
@@ -32,17 +34,22 @@ export class LoginComponent implements OnInit {
   otpForm: FormGroup = this.fb.group({
     otp: ['', [Validators.required, Validators.pattern(/^[0-9]{6}$/)]]
   });
+  otpLoginForm: FormGroup = this.fb.group({
+    email: ['', [Validators.required, Validators.email]]
+  });
 
   ngOnInit(): void {
     const remembered = this.auth.getRememberedEmail();
     if (remembered) {
       this.form.patchValue({ email: remembered, rememberMe: true });
+      this.otpLoginForm.patchValue({ email: remembered });
     }
   }
 
   get emailCtrl() { return this.form.get('email')!; }
   get passwordCtrl() { return this.form.get('password')!; }
   get otpCtrl() { return this.otpForm.get('otp')!; }
+  get otpLoginEmailCtrl() { return this.otpLoginForm.get('email')!; }
 
   get emailError(): string {
     const ctrl = this.emailCtrl;
@@ -60,6 +67,14 @@ export class LoginComponent implements OnInit {
     return '';
   }
 
+  get otpLoginEmailError(): string {
+    const ctrl = this.otpLoginEmailCtrl;
+    if (!ctrl.touched || !ctrl.errors) return '';
+    if (ctrl.errors['required']) return 'Email is required.';
+    if (ctrl.errors['email']) return 'Please enter a valid email address.';
+    return '';
+  }
+
   togglePassword(): void {
     this.showPassword.update(v => !v);
   }
@@ -71,6 +86,15 @@ export class LoginComponent implements OnInit {
   }
 
   async onSubmit(): Promise<void> {
+    if (this.loginWithOtpMode()) {
+      if (this.loginOtpSent()) {
+        await this.verifyLoginOtp();
+      } else {
+        await this.sendLoginOtp();
+      }
+      return;
+    }
+
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
 
@@ -95,6 +119,66 @@ export class LoginComponent implements OnInit {
         this.passwordCtrl.reset();
       }
     }
+  }
+
+  useOtpLogin(): void {
+    this.loginWithOtpMode.set(true);
+    this.loginOtpSent.set(false);
+    this.otpForm.reset();
+    this.showEmailVerification.set(false);
+    this.otpLoginForm.patchValue({ email: this.emailCtrl.value ?? '' });
+  }
+
+  usePasswordLogin(): void {
+    this.loginWithOtpMode.set(false);
+    this.loginOtpSent.set(false);
+    this.otpForm.reset();
+    this.otpLoginForm.patchValue({ email: this.emailCtrl.value ?? this.otpLoginEmailCtrl.value ?? '' });
+  }
+
+  async sendLoginOtp(): Promise<void> {
+    this.otpLoginForm.markAllAsTouched();
+    if (this.otpLoginForm.invalid) {
+      return;
+    }
+
+    this.isOtpLoading.set(true);
+    const email = this.otpLoginEmailCtrl.value;
+    const sent = await this.auth.requestLoginOtp(email);
+    const message = this.auth.lastApiMessage();
+    this.isOtpLoading.set(false);
+
+    if (!sent) {
+      this.toast.error(message || 'Could not send OTP. Please try again.');
+      return;
+    }
+
+    this.loginOtpSent.set(true);
+    this.otpForm.reset();
+    this.toast.success(message || 'OTP sent to your registered email address.');
+  }
+
+  async verifyLoginOtp(): Promise<void> {
+    this.otpLoginForm.markAllAsTouched();
+    this.otpForm.markAllAsTouched();
+    if (this.otpLoginForm.invalid || this.otpForm.invalid) {
+      return;
+    }
+
+    this.isOtpLoading.set(true);
+    const email = this.otpLoginEmailCtrl.value;
+    const rememberMe = Boolean(this.form.get('rememberMe')?.value);
+    const verified = await this.auth.verifyLoginOtp(email, this.otpCtrl.value, rememberMe);
+    const message = this.auth.lastApiMessage();
+    this.isOtpLoading.set(false);
+
+    if (!verified) {
+      this.toast.error(message || 'The OTP is incorrect or expired. Please try again.');
+      return;
+    }
+
+    this.toast.success(message || 'OTP verified. Redirecting to dashboard...');
+    this.router.navigate(['/dashboard']);
   }
 
   async generateOtp(): Promise<void> {

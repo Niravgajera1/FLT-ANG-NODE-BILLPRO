@@ -18,7 +18,7 @@
         <div class="w-16 h-16 rounded-2xl flex items-center justify-center shadow-btn mb-4 overflow-hidden bg-transparent">
           <img src="/assets/billqube-icon.png" alt="Billqube" class="w-12 h-12 object-contain" />
         </div>
-        <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">BillQube</h1>
+        <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight">Billqube</h1>
         <p class="text-sm text-gray-500 mt-1 font-medium">Enterprise Billing &amp; ERP Suite</p>
       </div>
 
@@ -30,7 +30,26 @@
 
       <!-- Form -->
       <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="space-y-5 fade-up fade-up-delay-3">
+        <div class="grid grid-cols-2 gap-2 rounded-2xl bg-gray-100 p-1">
+          <button
+            type="button"
+            (click)="usePasswordLogin()"
+            class="rounded-xl px-3 py-2 text-sm font-semibold transition"
+            [class]="!loginWithOtpMode() ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
+          >
+            Password
+          </button>
+          <button
+            type="button"
+            (click)="useOtpLogin()"
+            class="rounded-xl px-3 py-2 text-sm font-semibold transition"
+            [class]="loginWithOtpMode() ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
+          >
+            Login with OTP
+          </button>
+        </div>
 
+        @if (!loginWithOtpMode()) {
         <!-- Email Field -->
         <div>
           <label for="email" class="block text-sm font-semibold text-gray-700 mb-1.5">
@@ -217,6 +236,72 @@
             </button>
           </div>
         }
+        } @else {
+          <div [formGroup]="otpLoginForm" class="space-y-5">
+            <div>
+              <label for="otpLoginEmail" class="block text-sm font-semibold text-gray-700 mb-1.5">
+                Email Address
+              </label>
+              <div class="relative">
+                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
+                  <svg class="w-4.5 h-4.5" style="width:18px;height:18px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                  </svg>
+                </span>
+                <input
+                  id="otpLoginEmail"
+                  type="email"
+                  formControlName="email"
+                  autocomplete="email"
+                  placeholder="user@example.com"
+                  class="input-field pl-10"
+                  [class.error]="otpLoginEmailCtrl.touched && otpLoginEmailCtrl.invalid"
+                  [readonly]="loginOtpSent()"
+                />
+              </div>
+              @if (otpLoginEmailError) {
+                <p class="mt-1.5 text-xs text-red-500 font-medium flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                  </svg>
+                  {{ otpLoginEmailError }}
+                </p>
+              }
+            </div>
+
+            @if (loginOtpSent()) {
+              <div [formGroup]="otpForm">
+                <label for="directLoginOtp" class="block text-sm font-semibold text-gray-700 mb-1.5">
+                  Enter OTP
+                </label>
+                <input
+                  id="directLoginOtp"
+                  type="tel"
+                  formControlName="otp"
+                  inputmode="numeric"
+                  maxlength="6"
+                  pattern="[0-9]*"
+                  placeholder="123456"
+                  class="input-field w-full text-center tracking-[0.35em] text-lg font-semibold"
+                  [class.error]="otpCtrl.touched && otpCtrl.invalid"
+                  (input)="onOtpInput($event)"
+                />
+                @if (otpCtrl.touched && otpCtrl.errors) {
+                  <p class="mt-1.5 text-xs text-red-500">Enter the 6-digit OTP.</p>
+                }
+                <button
+                  type="button"
+                  (click)="sendLoginOtp()"
+                  class="mt-3 w-full text-sm font-semibold text-primary-700 hover:text-primary-900 disabled:opacity-60"
+                  [disabled]="isOtpLoading()"
+                >
+                  Resend OTP
+                </button>
+              </div>
+            }
+          </div>
+        }
 
         <!-- Submit Button -->
         <div class="pt-2">
@@ -257,7 +342,7 @@
 
     <!-- Footer -->
     <p class="text-center text-xs text-gray-400 mt-6 font-medium">
-      &copy; 2025 BillQube Inc. &bull; All rights reserved.
+      &copy; 2025 Billqube Inc. &bull; All rights reserved.
     </p>
   </div>
 </div>

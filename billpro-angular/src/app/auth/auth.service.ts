@@ -204,41 +204,7 @@ export class AuthService {
         return false;
       }
 
-      const apiUser = response.data?.user;
-      const savedSnapshot = this.loadSignupSnapshot();
-      const user: User = {
-        _id: apiUser?._id,
-        email: apiUser?.email ?? email,
-        fullName: apiUser?.fullName ?? apiUser?.name ?? email,
-        name: apiUser?.fullName ?? apiUser?.name ?? email,
-        mobile: apiUser?.mobile ?? savedSnapshot?.mobile,
-        role: apiUser?.role ?? 'User',
-        referralCode: apiUser?.referralCode ?? savedSnapshot?.referralCode,
-        isEmailVerified: apiUser?.isEmailVerified,
-        isMobileVerified: apiUser?.isMobileVerified,
-        isActive: apiUser?.isActive,
-        loginAttempts: apiUser?.loginAttempts,
-        onboardingCompleted: apiUser?.onboardingCompleted,
-        companies: apiUser?.companies,
-        businessInfo: (apiUser as any)?.businessInfo as BusinessInfo | undefined,
-        createdAt: apiUser?.createdAt,
-        updatedAt: apiUser?.updatedAt,
-        __v: apiUser?.__v
-      };
-
-      this._currentUser.set(user);
-      localStorage.setItem(AUTH_KEY, JSON.stringify(user));
-
-      if (rememberMe) {
-        localStorage.setItem(REMEMBER_KEY, email);
-      } else {
-        localStorage.removeItem(REMEMBER_KEY);
-      }
-
-      if (response.data?.accessToken) {
-        localStorage.setItem('billflow_auth_token', response.data.accessToken);
-      }
-
+      this.persistLogin(response, email, rememberMe);
       this._lastApiMessage.set(response.message || 'Welcome back! Redirecting to dashboard.');
       return true;
     } catch (error) {
@@ -246,6 +212,56 @@ export class AuthService {
       const message = this.getApiMessage(error, 'Invalid email or password. Please try again.');
       this._lastApiMessage.set(message);
       this._emailVerificationRequired.set(this.isEmailVerificationMessage(message));
+      return false;
+    }
+  }
+
+  async requestLoginOtp(email: string): Promise<boolean> {
+    this._lastApiMessage.set('');
+    try {
+      const response = await firstValueFrom(
+        this.http.post<SimpleApiResponse>(`${this.apiUrl}/api/v1/auth/login/otp`, {
+          email
+        })
+      );
+
+      if (!response?.success) {
+        this._lastApiMessage.set(response?.message || 'Could not send OTP. Please try again.');
+        return false;
+      }
+
+      const dataMessage = this.extractDataMessage(response.data);
+      this._lastApiMessage.set(dataMessage || response.message || 'OTP sent to your registered email address.');
+      return true;
+    } catch (error) {
+      console.error('Login OTP request error:', error);
+      this._lastApiMessage.set(this.getApiMessage(error, 'Could not send OTP. Please try again.'));
+      return false;
+    }
+  }
+
+  async verifyLoginOtp(email: string, otp: string, rememberMe: boolean): Promise<boolean> {
+    this._lastApiMessage.set('');
+    this._emailVerificationRequired.set(false);
+    try {
+      const response = await firstValueFrom(
+        this.http.post<LoginApiResponse>(`${this.apiUrl}/api/v1/auth/login/otp/verify`, {
+          email,
+          otp: otp.trim()
+        })
+      );
+
+      if (!response?.success) {
+        this._lastApiMessage.set(response?.message || 'The OTP is incorrect or expired. Please try again.');
+        return false;
+      }
+
+      this.persistLogin(response, email, rememberMe);
+      this._lastApiMessage.set(response.message || 'OTP verified. Redirecting to dashboard.');
+      return true;
+    } catch (error) {
+      console.error('Login OTP verification error:', error);
+      this._lastApiMessage.set(this.getApiMessage(error, 'The OTP is incorrect or expired. Please try again.'));
       return false;
     }
   }
@@ -430,6 +446,43 @@ export class AuthService {
     }
   }
 
+  private persistLogin(response: LoginApiResponse, email: string, rememberMe: boolean): void {
+    const apiUser = response.data?.user;
+    const savedSnapshot = this.loadSignupSnapshot();
+    const user: User = {
+      _id: apiUser?._id,
+      email: apiUser?.email ?? email,
+      fullName: apiUser?.fullName ?? apiUser?.name ?? email,
+      name: apiUser?.fullName ?? apiUser?.name ?? email,
+      mobile: apiUser?.mobile ?? savedSnapshot?.mobile,
+      role: apiUser?.role ?? 'User',
+      referralCode: apiUser?.referralCode ?? savedSnapshot?.referralCode,
+      isEmailVerified: apiUser?.isEmailVerified,
+      isMobileVerified: apiUser?.isMobileVerified,
+      isActive: apiUser?.isActive,
+      loginAttempts: apiUser?.loginAttempts,
+      onboardingCompleted: apiUser?.onboardingCompleted,
+      companies: apiUser?.companies,
+      businessInfo: (apiUser as any)?.businessInfo as BusinessInfo | undefined,
+      createdAt: apiUser?.createdAt,
+      updatedAt: apiUser?.updatedAt,
+      __v: apiUser?.__v
+    };
+
+    this._currentUser.set(user);
+    localStorage.setItem(AUTH_KEY, JSON.stringify(user));
+
+    if (rememberMe) {
+      localStorage.setItem(REMEMBER_KEY, email);
+    } else {
+      localStorage.removeItem(REMEMBER_KEY);
+    }
+
+    if (response.data?.accessToken) {
+      localStorage.setItem('billflow_auth_token', response.data.accessToken);
+    }
+  }
+
   login(email: string, password: string, rememberMe: boolean): boolean {
     const matched = MOCK_USERS.find(
       u => u.email.toLowerCase() === email.toLowerCase() && u.password === password
@@ -487,6 +540,15 @@ export class AuthService {
     }
 
     return fallback;
+  }
+
+  private extractDataMessage(data: unknown): string {
+    if (data && typeof data === 'object' && 'message' in data) {
+      const message = (data as { message?: unknown }).message;
+      return typeof message === 'string' ? message : '';
+    }
+
+    return '';
   }
 
   private isEmailVerificationMessage(message?: string): boolean {
