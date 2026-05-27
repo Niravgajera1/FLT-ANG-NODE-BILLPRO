@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://172.20.10.9:8082'
+  apiUrl: 'https://billpro-94p8.onrender.com'
 };
