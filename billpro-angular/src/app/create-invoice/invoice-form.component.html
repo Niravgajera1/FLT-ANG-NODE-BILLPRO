@@ -10,6 +10,9 @@
   </div>
 
   <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-xl shadow-slate-200/40">
+    <div *ngIf="form.invalid && form.touched" class="validation-message">
+      Please fill all required fields before saving.
+    </div>
     <section class="rounded-xl bg-slate-50 p-5">
       <div class="mb-5">
         <p class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Invoice details</p>
@@ -50,7 +53,7 @@
           <span class="text-sm font-medium text-slate-700">Place of Supply</span>
           <input formControlName="placeOfSupply" type="text" placeholder="Gujarat" class="field" />
         </label>
-        <label class="space-y-2 md:col-span-2">
+        <label class="space-y-2">
           <span class="text-sm font-medium text-slate-700">Dispatch From</span>
           <input formControlName="dispatchFrom" type="text" placeholder="Warehouse A" class="field" />
         </label>
@@ -61,10 +64,10 @@
       <div class="mb-5">
         <p class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Addresses</p>
       </div>
-      <div class="grid gap-5 lg:grid-cols-2">
+      <div class="grid gap-5">
         <div formGroupName="billingAddress" class="rounded-xl border border-slate-200 bg-white p-4">
           <p class="mb-4 text-sm font-semibold text-slate-800">Billing Address</p>
-          <div class="grid gap-4 md:grid-cols-2">
+          <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <label class="space-y-2">
               <span class="text-sm font-medium text-slate-700">Label</span>
               <input formControlName="label" type="text" class="field" />
@@ -73,11 +76,11 @@
               <span class="text-sm font-medium text-slate-700">Country</span>
               <input formControlName="country" type="text" class="field" />
             </label>
-            <label class="space-y-2 md:col-span-2">
+            <label class="space-y-2 md:col-span-2 lg:col-span-3">
               <span class="text-sm font-medium text-slate-700">Line 1</span>
               <input formControlName="line1" type="text" class="field" />
             </label>
-            <label class="space-y-2 md:col-span-2">
+            <label class="space-y-2 md:col-span-2 lg:col-span-3">
               <span class="text-sm font-medium text-slate-700">Line 2</span>
               <input formControlName="line2" type="text" class="field" />
             </label>
@@ -102,7 +105,7 @@
 
         <div formGroupName="shippingAddress" class="rounded-xl border border-slate-200 bg-white p-4">
           <p class="mb-4 text-sm font-semibold text-slate-800">Shipping Address</p>
-          <div class="grid gap-4 md:grid-cols-2">
+          <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <label class="space-y-2">
               <span class="text-sm font-medium text-slate-700">Label</span>
               <input formControlName="label" type="text" class="field" />
@@ -111,11 +114,11 @@
               <span class="text-sm font-medium text-slate-700">Country</span>
               <input formControlName="country" type="text" class="field" />
             </label>
-            <label class="space-y-2 md:col-span-2">
+            <label class="space-y-2 md:col-span-2 lg:col-span-3">
               <span class="text-sm font-medium text-slate-700">Line 1</span>
               <input formControlName="line1" type="text" class="field" />
             </label>
-            <label class="space-y-2 md:col-span-2">
+            <label class="space-y-2 md:col-span-2 lg:col-span-3">
               <span class="text-sm font-medium text-slate-700">Line 2</span>
               <input formControlName="line2" type="text" class="field" />
             </label>
@@ -159,15 +162,15 @@
             </button>
           </div>
 
-          <div class="grid gap-4 md:grid-cols-4">
-            <label class="space-y-2 md:col-span-2">
+          <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <label class="space-y-2">
               <span class="text-sm font-medium text-slate-700">Product</span>
               <select formControlName="itemId" class="field" (change)="onProductSelected(i)">
                 <option value="">Select product</option>
                 <option *ngFor="let product of productOptions()" [value]="product.id">{{ product.label }}</option>
               </select>
             </label>
-            <label class="space-y-2 md:col-span-2">
+            <label class="space-y-2">
               <span class="text-sm font-medium text-slate-700">Item Name</span>
               <input formControlName="itemName" type="text" placeholder="Premium Wireless Mouse" class="field" readonly />
             </label>
@@ -223,12 +226,12 @@
       <div class="mb-5">
         <p class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Notes and terms</p>
       </div>
-      <div class="grid gap-5 md:grid-cols-2">
-        <label class="space-y-2">
+      <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        <label class="space-y-2 md:col-span-2 lg:col-span-3">
           <span class="text-sm font-medium text-slate-700">Notes</span>
           <textarea formControlName="notes" rows="4" placeholder="Thank you for your business!" class="field resize-none"></textarea>
         </label>
-        <label class="space-y-2">
+        <label class="space-y-2 md:col-span-2 lg:col-span-3">
           <span class="text-sm font-medium text-slate-700">Terms and Conditions</span>
           <textarea formControlName="termsAndConditions" rows="4" placeholder="Payment is strictly due within 30 days..." class="field resize-none"></textarea>
         </label>

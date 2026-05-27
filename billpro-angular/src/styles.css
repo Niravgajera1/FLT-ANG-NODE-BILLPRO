@@ -31,6 +31,18 @@
     @apply border-red-400 bg-red-50 focus:ring-red-400;
   }
 
+  .input-field.ng-invalid.ng-touched,
+  .field.ng-invalid.ng-touched,
+  input.ng-invalid.ng-touched,
+  select.ng-invalid.ng-touched,
+  textarea.ng-invalid.ng-touched {
+    @apply border-red-400 bg-red-50 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-100;
+  }
+
+  .validation-message {
+    @apply rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700;
+  }
+
   .btn-primary {
     @apply w-full py-3.5 px-6 rounded-xl bg-primary-600 text-white text-sm font-semibold tracking-wide transition-all duration-200 hover:bg-primary-700 active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-primary-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100;
     box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.35);

@@ -253,15 +253,22 @@ export class ProductFormComponent implements OnInit {
       return;
     }
 
+    const companyId = this.getCompanyId();
+    if (!companyId) {
+      this.toast.error('Company ID missing. Please complete company setup.');
+      return;
+    }
+
     this.isSubmitting.set(true);
     try {
+      const options = {
+        headers: new HttpHeaders({ Authorization: `Bearer ${token}` }),
+        params: new HttpParams().set('companyId', companyId)
+      };
+
       const request = this.productId
-        ? this.http.put<ItemApiResponse>(`${this.apiUrl}/api/v1/items/${this.productId}`, this.toFormData(), {
-          headers: new HttpHeaders({ Authorization: `Bearer ${token}` })
-        })
-        : this.http.post<ItemApiResponse>(`${this.apiUrl}/api/v1/items`, this.toFormData(), {
-          headers: new HttpHeaders({ Authorization: `Bearer ${token}` })
-        });
+        ? this.http.put<ItemApiResponse>(`${this.apiUrl}/api/v1/items/${this.productId}`, this.toFormData(), options)
+        : this.http.post<ItemApiResponse>(`${this.apiUrl}/api/v1/items`, this.toFormData(), options);
 
       const response = await firstValueFrom(request);
 
@@ -287,11 +294,18 @@ export class ProductFormComponent implements OnInit {
       return;
     }
 
+    const companyId = this.getCompanyId();
+    if (!companyId) {
+      this.toast.error('Company ID missing. Please complete company setup.');
+      return;
+    }
+
     this.isLoading.set(true);
     try {
       const response = await firstValueFrom(
         this.http.get<ItemApiResponse>(`${this.apiUrl}/api/v1/items/${id}`, {
-          headers: new HttpHeaders({ Authorization: `Bearer ${token}` })
+          headers: new HttpHeaders({ Authorization: `Bearer ${token}` }),
+          params: new HttpParams().set('companyId', companyId)
         })
       );
 
@@ -325,6 +339,15 @@ export class ProductFormComponent implements OnInit {
       if (data['item'] && typeof data['item'] === 'object') {
         return data['item'] as Record<string, unknown>;
       }
+      if (data['product'] && typeof data['product'] === 'object') {
+        return data['product'] as Record<string, unknown>;
+      }
+      if (data['details'] && typeof data['details'] === 'object') {
+        return data['details'] as Record<string, unknown>;
+      }
+      if (data['data'] && typeof data['data'] === 'object' && !Array.isArray(data['data'])) {
+        return data['data'] as Record<string, unknown>;
+      }
       return data;
     }
 
@@ -332,14 +355,13 @@ export class ProductFormComponent implements OnInit {
   }
 
   private patchProduct(item: Record<string, unknown>): void {
-    console.log(item)
     this.form.patchValue({
       name: this.asString(item['name']),
       description: this.asString(item['description']),
       itemType: this.asString(item['itemType']) || 'product',
       hsnCode: this.asString(item['hsnCode']),
       sacCode: this.asString(item['sacCode']),
-    category: this.normalizeId(item['category'] ?? item['categoryId']),
+      category: this.normalizeId(item['category'] ?? item['categoryId']),
       brand: this.asString(item['brand']),
       unit: this.asString(item['unit']) || 'pcs',
       sellingPrice: this.asNumber(item['sellingPrice']),

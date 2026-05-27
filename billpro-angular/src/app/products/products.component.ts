@@ -203,7 +203,7 @@ export class ProductsComponent implements OnInit {
   private toProduct(item: unknown): Product {
     const value = item as Record<string, unknown>;
     return {
-      id: this.asString(value['_id'] ?? value['id']),
+      id: this.normalizeId(value['_id'] ?? value['id'] ?? value['itemId'] ?? value['value']),
       name: this.asString(value['name']),
       itemType: this.asString(value['itemType']),
       category: this.extractCategoryName(value['category'] ?? value['categoryId']),
