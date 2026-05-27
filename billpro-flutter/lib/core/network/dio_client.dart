@@ -125,12 +125,39 @@ ServerException handleDioError(DioException e) {
   final response = e.response;
   if (response != null) {
     final data = response.data;
-    final message = data is Map
-        ? (data['message'] ?? 'Something went wrong')
-        : 'Something went wrong';
-    final errors = data is Map && data['errors'] != null
-        ? List<Map<String, dynamic>>.from(data['errors'])
-        : null;
+
+    // ── Parse field-level validation errors array ──────────────────────────
+    // API format: { "errors": [{ "field": "otp", "message": "OTP is required" }] }
+    List<Map<String, dynamic>>? errors;
+    if (data is Map && data['errors'] is List) {
+      errors = List<Map<String, dynamic>>.from(
+        (data['errors'] as List).whereType<Map>(),
+      );
+    }
+
+    // Build a human-readable message from the errors array when present,
+    // otherwise fall back to the top-level "message" field.
+    String message;
+    if (errors != null && errors.isNotEmpty) {
+      message = errors
+          .map((e) {
+            final field = e['field']?.toString();
+            final msg = e['message']?.toString() ?? '';
+            return field != null && field.isNotEmpty ? '$field: $msg' : msg;
+          })
+          .where((s) => s.isNotEmpty)
+          .join('\n');
+      // If no messages were extracted, fall back to top-level message
+      if (message.isEmpty) {
+        message = data is Map
+            ? (data['message']?.toString() ?? 'Validation failed')
+            : 'Validation failed';
+      }
+    } else {
+      message = data is Map
+          ? (data['message']?.toString() ?? 'Something went wrong')
+          : 'Something went wrong';
+    }
 
     return ServerException(
       message: message,
@@ -142,3 +169,4 @@ ServerException handleDioError(DioException e) {
   return ServerException(
       message: e.message ?? 'Unknown error occurred', statusCode: 0);
 }
+
