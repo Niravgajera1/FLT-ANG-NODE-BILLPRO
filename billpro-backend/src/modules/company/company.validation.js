@@ -80,7 +80,7 @@ const validate = (schema) => (req, res, next) => {
       errors: error.details.map(d => ({ field: d.path.join('.'), message: d.message })),
     });
   }
-  
+
   // Reassign req.body with the sanitized and validated value
   req.body = value;
   next();

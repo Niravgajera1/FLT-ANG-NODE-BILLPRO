@@ -124,26 +124,26 @@ const loginWithPassword = async ({ email, password, ipAddress, userAgent }) => {
   return { accessToken, refreshToken, user: user.toSafeObject() };
 };
 
-const loginWithOTP = async ({ mobile }) => {
-  const user = await User.findOne({ mobile });
-  if (!user) throw Object.assign(new Error('Mobile number not registered'), { statusCode: 404 });
+const loginWithOTP = async ({ email }) => {
+  const user = await User.findOne({ email });
+  if (!user) throw Object.assign(new Error('Email not registered'), { statusCode: 404 });
 
   if (!user.isEmailVerified) {
     throw Object.assign(new Error('Please verify your email address before logging in'), { statusCode: 403 });
   }
 
-  const otp = await storeOTP(mobile, 'login');
+  const otp = await storeOTP(email, 'login');
   const { sendOTPEmail } = require('../../utils/emailService');
-  await sendOTPEmail(user.email, otp, 'login');
+  await sendOTPEmail(email, otp, 'login');
 
   return { message: 'OTP sent to your registered email address' };
 };
 
-const verifyLoginOTP = async ({ mobile, otp, ipAddress, userAgent }) => {
-  const result = await verifyOTP(mobile, otp, 'login');
+const verifyLoginOTP = async ({ email, otp, ipAddress, userAgent }) => {
+  const result = await verifyOTP(email, otp, 'login');
   if (!result.valid) throw Object.assign(new Error(result.reason), { statusCode: 400 });
 
-  const user = await User.findOne({ mobile });
+  const user = await User.findOne({ email });
   if (!user || !user.isActive) throw Object.assign(new Error('User not found'), { statusCode: 404 });
 
   const { accessToken, refreshToken } = generateTokens(user);

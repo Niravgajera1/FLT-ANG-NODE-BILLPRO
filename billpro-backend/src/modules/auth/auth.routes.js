@@ -12,7 +12,7 @@ router.post('/verify-otp', otpRateLimiter, validate(schemas.verifyOTP), authCont
 router.post('/resend-otp', otpRateLimiter, validate(schemas.resendOTP), authController.resendOTP);
 router.post('/login', authRateLimiter, validate(schemas.login), authController.login);
 router.post('/login/otp', otpRateLimiter, validate(schemas.loginOTP), authController.sendLoginOTP);
-router.post('/login/otp/verify', otpRateLimiter, authController.verifyLoginOTP);
+router.post('/login/otp/verify', otpRateLimiter, validate(schemas.verifyLoginOTP), authController.verifyLoginOTP);
 router.post('/refresh', authController.refreshToken);
 router.post('/forgot-password', authRateLimiter, validate(schemas.forgotPassword), authController.forgotPassword);
 router.post('/reset-password', authRateLimiter, validate(schemas.resetPassword), authController.resetPassword);
