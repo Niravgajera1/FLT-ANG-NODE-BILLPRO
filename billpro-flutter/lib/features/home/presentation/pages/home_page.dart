@@ -229,17 +229,14 @@ class _HomePageState extends State<HomePage> {
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E3A5F), Color(0xFF3B82F6)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1E3A5F).withValues(alpha: 0.25),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -249,6 +246,32 @@ class _HomePageState extends State<HomePage> {
           // Top row: greeting + profile button
           Row(
             children: [
+              // App logo
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.border),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(11),
+                  child: Image.asset(
+                    'assets/images/billcube_icon.jpeg',
+                    width: 42,
+                    height: 42,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -256,18 +279,18 @@ class _HomePageState extends State<HomePage> {
                     Text(
                       '$greeting${firstName.isNotEmpty ? ', $firstName' : ''}!',
                       style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
+                        color: AppColors.textPrimary,
+                        fontSize: 18,
                         fontWeight: FontWeight.w700,
                         letterSpacing: -0.3,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
-                      'Dashboard summary for ${dateFormat.format(startDate)} – ${dateFormat.format(now)}',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.7),
-                        fontSize: 12,
+                      '${dateFormat.format(startDate)} – ${dateFormat.format(now)}',
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 11,
                       ),
                     ),
                   ],
@@ -278,16 +301,19 @@ class _HomePageState extends State<HomePage> {
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
+                    color: AppColors.bgSurface,
                     borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.border),
                   ),
                   child: const Icon(Icons.person_outline_rounded,
-                      color: Colors.white, size: 22),
+                      color: AppColors.textSecondary, size: 20),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
+          const Divider(height: 1, color: AppColors.borderLight),
+          const SizedBox(height: 14),
           // Action buttons
           Row(
             children: [
@@ -327,12 +353,11 @@ class _HomePageState extends State<HomePage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: outlined ? Colors.transparent : Colors.white,
+          gradient: outlined ? null : AppColors.primaryGradient,
+          color: outlined ? Colors.white : null,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: outlined
-                ? Colors.white.withValues(alpha: 0.4)
-                : Colors.white,
+            color: outlined ? AppColors.primary : Colors.transparent,
           ),
         ),
         child: Row(
@@ -340,19 +365,19 @@ class _HomePageState extends State<HomePage> {
           mainAxisSize: outlined ? MainAxisSize.min : MainAxisSize.max,
           children: [
             if (isLoading) ...[
-              const SizedBox(
+              SizedBox(
                 width: 16,
                 height: 16,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: Colors.white,
+                  color: outlined ? AppColors.primary : Colors.white,
                 ),
               ),
               const SizedBox(width: 6),
             ] else if (icon != null) ...[
               Icon(icon,
                   size: 16,
-                  color: outlined ? Colors.white : AppColors.primary),
+                  color: outlined ? AppColors.primary : Colors.white),
               const SizedBox(width: 6),
             ],
             Text(
@@ -360,7 +385,7 @@ class _HomePageState extends State<HomePage> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: outlined ? Colors.white : AppColors.primary,
+                color: outlined ? AppColors.primary : Colors.white,
               ),
             ),
           ],

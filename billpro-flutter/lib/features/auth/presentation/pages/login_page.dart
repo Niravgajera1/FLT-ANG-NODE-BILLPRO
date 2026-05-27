@@ -159,6 +159,44 @@ class _LoginPageState extends State<LoginPage> {
                       );
                     },
                   ),
+                  const SizedBox(height: 16),
+
+                  // ── Divider ─────────────────────────────────
+                  Row(
+                    children: [
+                      const Expanded(child: Divider(color: AppColors.borderLight)),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Text(
+                          'or',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.textHint,
+                              ),
+                        ),
+                      ),
+                      const Expanded(child: Divider(color: AppColors.borderLight)),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ── Login with OTP button ────────────────────
+                  OutlinedButton.icon(
+                    onPressed: () => context.push('/login-otp'),
+                    icon: const Icon(Icons.mark_email_read_outlined, size: 20),
+                    label: const Text('Login with OTP'),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 52),
+                      foregroundColor: AppColors.primary,
+                      side: const BorderSide(color: AppColors.primary),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 28),
 
                   Center(

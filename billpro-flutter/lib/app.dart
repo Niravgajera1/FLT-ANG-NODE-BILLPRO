@@ -10,6 +10,7 @@ import 'features/auth/presentation/pages/register_page.dart';
 import 'features/auth/presentation/pages/otp_page.dart';
 import 'features/auth/presentation/pages/forgot_password_page.dart';
 import 'features/auth/presentation/pages/reset_password_page.dart';
+import 'features/auth/presentation/pages/login_otp_page.dart';
 import 'features/home/presentation/pages/home_page.dart';
 import 'features/profile/presentation/pages/profile_page.dart';
 import 'features/customer/presentation/pages/customer_list_page.dart';
@@ -29,7 +30,7 @@ class BillProApp extends StatelessWidget {
         final auth = context.read<AuthProvider>();
         final isAuth = auth.isAuthenticated;
         final loc = state.matchedLocation;
-        final publicRoutes = ['/', '/login', '/register', '/otp', '/forgot-password', '/reset-password'];
+        final publicRoutes = ['/', '/login', '/register', '/otp', '/forgot-password', '/reset-password', '/login-otp'];
         final isPublic = publicRoutes.contains(loc);
 
         if (isAuth && isPublic && loc != '/') return '/home';
@@ -53,6 +54,7 @@ class BillProApp extends StatelessWidget {
           },
         ),
         GoRoute(path: '/forgot-password', builder: (context, state) => const ForgotPasswordPage()),
+        GoRoute(path: '/login-otp', builder: (context, state) => const LoginOtpPage()),
         GoRoute(
           path: '/reset-password',
           builder: (context, state) {

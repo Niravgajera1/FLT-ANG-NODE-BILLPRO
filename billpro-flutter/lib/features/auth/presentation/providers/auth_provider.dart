@@ -101,6 +101,51 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  // ── Login with OTP — Step 1: Request OTP ────────────────────────────────
+  Future<bool> sendLoginOtp({required String email}) async {
+    _setLoading(true);
+    _errorMessage = null;
+    try {
+      _message = await _authRepository.loginWithOtp(email: email);
+      _otpIdentifier = email;
+      _otpPurpose = 'login_otp';
+      _status = AuthStatus.otpSent;
+      _setLoading(false);
+      return true;
+    } on ServerException catch (e) {
+      _errorMessage = e.message;
+      _setLoading(false);
+      return false;
+    } catch (e) {
+      _errorMessage = 'Something went wrong. Please try again.';
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  // ── Login with OTP — Step 2: Verify OTP → authenticated ─────────────────
+  Future<bool> verifyLoginOtp({
+    required String email,
+    required String otp,
+  }) async {
+    _setLoading(true);
+    _errorMessage = null;
+    try {
+      _user = await _authRepository.verifyLoginOtp(email: email, otp: otp);
+      _status = AuthStatus.authenticated;
+      _setLoading(false);
+      return true;
+    } on ServerException catch (e) {
+      _errorMessage = e.message;
+      _setLoading(false);
+      return false;
+    } catch (e) {
+      _errorMessage = 'Invalid OTP. Please try again.';
+      _setLoading(false);
+      return false;
+    }
+  }
+
   // ── Register ────────────────────────────────────────────────────────────
   Future<bool> register({
     required String fullName,

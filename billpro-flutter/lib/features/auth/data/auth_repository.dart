@@ -127,6 +127,63 @@ class AuthRepository {
     }
   }
 
+  // ── Login with OTP — Step 1: Request OTP ─────────────────────────────────
+  Future<String> loginWithOtp({required String email}) async {
+    try {
+      final response = await _dioClient.dio.post(
+        ApiEndpoints.loginOtp,
+        data: {'email': email},
+      );
+      return response.data['data']?['message'] ??
+          response.data['message'] ??
+          'OTP sent to your registered email address';
+    } on DioException catch (e) {
+      throw handleDioError(e);
+    }
+  }
+
+  // ── Login with OTP — Step 2: Verify OTP + get token ──────────────────────
+  Future<UserModel> verifyLoginOtp({
+    required String email,
+    required String otp,
+  }) async {
+    try {
+      final response = await _dioClient.dio.post(
+        ApiEndpoints.loginOtpVerify,
+        data: {'email': email, 'otp': otp},
+      );
+
+      final data = response.data['data'] ?? response.data;
+
+      final accessToken = data['accessToken']?.toString();
+      final refreshToken = data['refreshToken']?.toString();
+
+      if (accessToken != null && accessToken.isNotEmpty) {
+        await _prefs.setString(AppConstants.accessTokenKey, accessToken);
+      }
+      if (refreshToken != null && refreshToken.isNotEmpty) {
+        await _prefs.setString(AppConstants.refreshTokenKey, refreshToken);
+      }
+
+      final userData = data['user'] ?? data;
+      final user = UserModel.fromJson(userData as Map<String, dynamic>);
+
+      if (user.activeCompanyId != null && user.activeCompanyId!.isNotEmpty) {
+        await _prefs.setString(
+            AppConstants.activeCompanyIdKey, user.activeCompanyId!);
+      }
+
+      await _prefs.setString(AppConstants.userKey, user.toJsonString());
+      return user;
+    } on DioException catch (e) {
+      throw handleDioError(e);
+    } catch (e, stack) {
+      debugPrint('verifyLoginOtp parse error: $e');
+      debugPrint('Stack: $stack');
+      rethrow;
+    }
+  }
+
   // ── Get Current User ──────────────────────────────────────────────────────
   Future<UserModel> getMe() async {
     try {
