@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../dashboard/presentation/providers/dashboard_provider.dart';
 import '../../../dashboard/presentation/widgets/kpi_cards.dart';
 import '../../../dashboard/presentation/widgets/dashboard_sections.dart';
 import '../../../dashboard/presentation/widgets/dashboard_lists.dart';
+import '../../../dashboard/presentation/widgets/dashboard_charts.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -19,7 +22,6 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    // Load dashboard data on first visit.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<DashboardProvider>();
       if (!provider.hasData && !provider.isLoading) {
@@ -54,107 +56,148 @@ class _HomePageState extends State<HomePage> {
               color: AppColors.primary,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ── Header ──────────────────────────────
-                    _buildHeader(context),
+                    // ── Greeting Banner ─────────────────────
+                    _buildGreetingBanner(context),
+
+                    const SizedBox(height: 16),
+
+                    // ── KPI Scroll Row ──────────────────────
+                    KpiScrollRow(kpis: data.kpis),
+
+                    const SizedBox(height: 16),
+
+                    // ── Quick Stats Strip ───────────────────
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: QuickStatsStrip(kpis: data.kpis),
+                    ),
+
                     const SizedBox(height: 20),
 
-                    // ── Financial Overview Gradient Card ────
-                    _buildOverviewCard(data),
+                    // ── Quick Access ────────────────────────
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: SectionHeader(
+                        title: 'Quick Access',
+                        icon: Icons.apps_rounded,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: QuickAccessGrid(
+                        onNavigate: (route) => context.push(route),
+                      ),
+                    ),
+
                     const SizedBox(height: 20),
 
-                    // ── Quick Stats Row ─────────────────────
-                    QuickStatsRow(kpis: data.kpis),
-                    const SizedBox(height: 24),
-
-                    // ── KPI Grid ────────────────────────────
-                    SectionHeader(
-                      title: 'Financial KPIs',
-                      icon: Icons.analytics_rounded,
+                    // ── Financial Summary ────────────────────
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: SectionHeader(
+                        title: 'Financial Summary',
+                        icon: Icons.account_balance_outlined,
+                      ),
                     ),
-                    const SizedBox(height: 12),
-                    KpiGrid(kpis: data.kpis),
-                    const SizedBox(height: 24),
-
-                    // ── Sales vs Purchase ────────────────────
-                    SectionHeader(
-                      title: 'Sales vs Purchase',
-                      icon: Icons.compare_arrows_rounded,
+                    const SizedBox(height: 10),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: FinancialSummaryCards(kpis: data.kpis),
                     ),
+
+                    const SizedBox(height: 20),
+
+                    // ── Sales Trend Chart ────────────────────
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: SalesTrendChart(data: data.salesTrend),
+                    ),
+
                     const SizedBox(height: 12),
-                    SalesVsPurchaseCard(kpis: data.kpis),
-                    const SizedBox(height: 24),
 
-                    // ── Invoice Status ──────────────────────
-                    if (data.invoiceStatus.isNotEmpty) ...[
-                      SectionHeader(
-                        title: 'Invoice Status',
-                        icon: Icons.pie_chart_rounded,
-                      ),
-                      const SizedBox(height: 12),
-                      InvoiceStatusCard(items: data.invoiceStatus),
-                      const SizedBox(height: 24),
-                    ],
+                    // ── Sales vs Purchases Chart ────────────
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: SalesVsPurchaseChart(
+                          data: data.salesVsPurchase),
+                    ),
 
-                    // ── Top Selling Products ────────────────
-                    if (data.topSellingProducts.isNotEmpty) ...[
-                      SectionHeader(
-                        title: 'Top Selling Products',
-                        icon: Icons.star_rounded,
-                        onViewAll: () => context.push('/items'),
-                      ),
-                      const SizedBox(height: 12),
-                      TopProductsList(products: data.topSellingProducts),
-                      const SizedBox(height: 24),
-                    ],
+                    const SizedBox(height: 20),
 
-                    // ── Top Customers ───────────────────────
-                    if (data.topCustomers.isNotEmpty) ...[
-                      SectionHeader(
-                        title: 'Top Customers',
-                        icon: Icons.emoji_events_rounded,
-                        onViewAll: () => context.push('/customers'),
-                      ),
-                      const SizedBox(height: 12),
-                      TopCustomersList(customers: data.topCustomers),
-                      const SizedBox(height: 24),
-                    ],
-
-                    // ── Recent Sales Invoices ───────────────
-                    if (data.recentSalesInvoices.isNotEmpty) ...[
-                      SectionHeader(
+                    // ── Recent Sales Invoices ────────────────
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: SectionHeader(
                         title: 'Recent Invoices',
                         icon: Icons.receipt_long_rounded,
                         onViewAll: () => context.push('/sales'),
                       ),
-                      const SizedBox(height: 12),
-                      RecentInvoicesList(
+                    ),
+                    const SizedBox(height: 10),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: RecentInvoicesList(
                           invoices: data.recentSalesInvoices),
-                      const SizedBox(height: 24),
-                    ],
+                    ),
 
-                    // ── Recent Purchase Bills ───────────────
-                    if (data.recentPurchaseBills.isNotEmpty) ...[
-                      SectionHeader(
-                        title: 'Recent Purchase Bills',
+                    const SizedBox(height: 16),
+
+                    // ── Recent Purchase Bills ────────────────
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: SectionHeader(
+                        title: 'Recent Bills',
                         icon: Icons.shopping_cart_rounded,
                         onViewAll: () => context.push('/purchases'),
                       ),
-                      const SizedBox(height: 12),
-                      RecentBillsList(bills: data.recentPurchaseBills),
-                      const SizedBox(height: 24),
-                    ],
+                    ),
+                    const SizedBox(height: 10),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child:
+                          RecentBillsList(bills: data.recentPurchaseBills),
+                    ),
 
-                    // ── Quick Access ────────────────────────
-                    SectionHeader(
-                      title: 'Quick Access',
-                      icon: Icons.apps_rounded,
+                    const SizedBox(height: 20),
+
+                    // ── Top Customers ────────────────────────
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: InfoCard(
+                        title: 'Top Customers',
+                        icon: Icons.emoji_events_rounded,
+                        child: TopCustomersMini(
+                            customers: data.topCustomers),
+                      ),
                     ),
                     const SizedBox(height: 12),
-                    _buildQuickAccess(context),
+
+                    // ── Top Products ─────────────────────────
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: InfoCard(
+                        title: 'Top Selling Products',
+                        icon: Icons.star_rounded,
+                        child: TopProductsMini(
+                            products: data.topSellingProducts),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // ── Invoice Status ───────────────────────
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: InfoCard(
+                        title: 'Invoice Status',
+                        icon: Icons.pie_chart_rounded,
+                        child: InvoiceStatusMini(
+                            items: data.invoiceStatus),
+                      ),
+                    ),
 
                     const SizedBox(height: 32),
                   ],
@@ -167,86 +210,32 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // ─── Header ──────────────────────────────────────────────────────────────
+  // ─── Greeting Banner ────────────────────────────────────────────────────
 
-  Widget _buildHeader(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Dashboard',
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              'FY ${_currentFY()} Overview',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: AppColors.textSecondary),
-            ),
-          ],
-        ),
-        Row(
-          children: [
-            _headerButton(Icons.refresh_rounded, () {
-              context.read<DashboardProvider>().loadSummary();
-            }),
-            const SizedBox(width: 8),
-            _headerButton(Icons.person_outline_rounded, () {
-              context.push('/profile');
-            }),
-          ],
-        ),
-      ],
-    );
-  }
+  Widget _buildGreetingBanner(BuildContext context) {
+    final auth = context.read<AuthProvider>();
+    final firstName = (auth.user?.fullName ?? '').split(' ').first;
+    final greeting = _getGreeting();
 
-  Widget _headerButton(IconData icon, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Icon(icon, size: 20, color: AppColors.primary),
-      ),
-    );
-  }
-
-  String _currentFY() {
     final now = DateTime.now();
-    final start = now.month >= 4 ? now.year : now.year - 1;
-    final end = start + 1;
-    return '$start-${end.toString().substring(2)}';
-  }
+    final fyStartYear = now.month >= 4 ? now.year : now.year - 1;
+    final startDate = DateTime(fyStartYear, 4, 1);
+    final dateFormat = DateFormat('dd MMM yyyy');
 
-  // ─── Overview Gradient Card ──────────────────────────────────────────────
-
-  Widget _buildOverviewCard(dynamic data) {
-    final kpis = data.kpis;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF1E40AF), Color(0xFF3B82F6)],
+          colors: [Color(0xFF1E3A5F), Color(0xFF3B82F6)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.3),
+            color: const Color(0xFF1E3A5F).withValues(alpha: 0.25),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -255,236 +244,211 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.account_balance_rounded,
-                    color: Colors.white, size: 22),
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                'Business Overview',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
+          // Top row: greeting + profile button
           Row(
             children: [
               Expanded(
-                child: _overviewStat(
-                  'Total Sales',
-                  _formatLarge(kpis.totalSales.value),
-                  Icons.trending_up_rounded,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '$greeting${firstName.isNotEmpty ? ', $firstName' : ''}!',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Dashboard summary for ${dateFormat.format(startDate)} – ${dateFormat.format(now)}',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.7),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              Container(
-                width: 1,
-                height: 48,
-                color: Colors.white.withValues(alpha: 0.2),
-              ),
-              Expanded(
-                child: _overviewStat(
-                  'Total Purchases',
-                  _formatLarge(kpis.totalPurchases.value),
-                  Icons.trending_down_rounded,
+              GestureDetector(
+                onTap: () => context.push('/profile'),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.person_outline_rounded,
+                      color: Colors.white, size: 22),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  kpis.grossProfit.value >= 0
-                      ? Icons.arrow_upward_rounded
-                      : Icons.arrow_downward_rounded,
-                  color: kpis.grossProfit.value >= 0
-                      ? const Color(0xFF86EFAC)
-                      : const Color(0xFFFCA5A5),
-                  size: 18,
+          // Action buttons
+          Row(
+            children: [
+              _bannerButton(
+                label: 'Refresh',
+                icon: Icons.refresh_rounded,
+                outlined: true,
+                onTap: () =>
+                    context.read<DashboardProvider>().loadSummary(),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _bannerButton(
+                  label: '+ New Invoice',
+                  outlined: false,
+                  onTap: () => context.push('/sales'),
                 ),
-                const SizedBox(width: 6),
-                Text(
-                  'Gross Profit: ${_formatLarge(kpis.grossProfit.value)}',
-                  style: TextStyle(
-                    color: kpis.grossProfit.value >= 0
-                        ? const Color(0xFF86EFAC)
-                        : const Color(0xFFFCA5A5),
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _overviewStat(String label, String value, IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.7),
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
+  Widget _bannerButton({
+    required String label,
+    IconData? icon,
+    required bool outlined,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: outlined ? Colors.transparent : Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: outlined
+                ? Colors.white.withValues(alpha: 0.4)
+                : Colors.white,
           ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.5,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: outlined ? MainAxisSize.min : MainAxisSize.max,
+          children: [
+            if (icon != null) ...[
+              Icon(icon,
+                  size: 16,
+                  color: outlined ? Colors.white : AppColors.primary),
+              const SizedBox(width: 6),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: outlined ? Colors.white : AppColors.primary,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  String _formatLarge(double value) {
-    final isNegative = value < 0;
-    final absVal = value.abs();
-    String result;
-    if (absVal >= 10000000) {
-      result = '₹${(absVal / 10000000).toStringAsFixed(2)} Cr';
-    } else if (absVal >= 100000) {
-      result = '₹${(absVal / 100000).toStringAsFixed(2)} L';
-    } else if (absVal >= 1000) {
-      result = '₹${(absVal / 1000).toStringAsFixed(1)}K';
-    } else {
-      result = '₹${absVal.toStringAsFixed(0)}';
-    }
-    return isNegative ? '-$result' : result;
-  }
-
-  // ─── Quick Access Grid ─────────────────────────────────────────────────
-
-  Widget _buildQuickAccess(BuildContext context) {
-    final items = [
-      (Icons.receipt_long_rounded, 'Sales', const Color(0xFFD97706), '/sales'),
-      (Icons.shopping_cart_rounded, 'Purchases', const Color(0xFF0284C7), '/purchases'),
-      (Icons.people_alt_rounded, 'Customers', AppColors.primary, '/customers'),
-      (Icons.local_shipping_rounded, 'Vendors', const Color(0xFFE11D48), '/vendors'),
-      (Icons.inventory_2_rounded, 'Products', const Color(0xFF059669), '/items'),
-      (Icons.business_rounded, 'Profile', const Color(0xFF7C3AED), '/profile'),
-    ];
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        childAspectRatio: 1.0,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-      ),
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        final item = items[index];
-        return InkWell(
-          onTap: () => context.push(item.$4),
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: item.$3.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Icon(item.$1, color: item.$3, size: 22),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  item.$2,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    if (hour < 21) return 'Good evening';
+    return 'Good night';
   }
 
   // ─── Loading Shimmer ─────────────────────────────────────────────────────
 
   Widget _buildShimmerLoading() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(context),
+          // Greeting banner
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: _shimmerBox(height: 130, borderRadius: 18),
+          ),
+          const SizedBox(height: 16),
+          // KPI scroll
+          SizedBox(
+            height: 140,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: 4,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (_, __) => _shimmerBox(
+                  height: 140, width: 160, borderRadius: 16),
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Stats strip
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: _shimmerBox(height: 80, borderRadius: 14),
+          ),
           const SizedBox(height: 20),
-          // Gradient card placeholder
-          _shimmerBox(height: 180, borderRadius: 20),
+          // Quick access
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: _shimmerBox(height: 180, borderRadius: 16),
+          ),
           const SizedBox(height: 20),
-          // Stats row
-          _shimmerBox(height: 90, borderRadius: 16),
-          const SizedBox(height: 24),
-          // KPI grid
-          Row(children: [
-            Expanded(child: _shimmerBox(height: 110, borderRadius: 16)),
-            const SizedBox(width: 12),
-            Expanded(child: _shimmerBox(height: 110, borderRadius: 16)),
-          ]),
+          // Summary cards
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Expanded(child: _shimmerBox(height: 100, borderRadius: 14)),
+                const SizedBox(width: 12),
+                Expanded(child: _shimmerBox(height: 100, borderRadius: 14)),
+              ],
+            ),
+          ),
           const SizedBox(height: 12),
-          Row(children: [
-            Expanded(child: _shimmerBox(height: 110, borderRadius: 16)),
-            const SizedBox(width: 12),
-            Expanded(child: _shimmerBox(height: 110, borderRadius: 16)),
-          ]),
-          const SizedBox(height: 24),
-          _shimmerBox(height: 140, borderRadius: 16),
-          const SizedBox(height: 24),
-          _shimmerBox(height: 100, borderRadius: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: _shimmerBox(height: 100, borderRadius: 14),
+          ),
+          const SizedBox(height: 20),
+          // Charts
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: _shimmerBox(height: 280, borderRadius: 12),
+          ),
           const SizedBox(height: 12),
-          _shimmerBox(height: 100, borderRadius: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: _shimmerBox(height: 280, borderRadius: 12),
+          ),
+          const SizedBox(height: 20),
+          // Invoices
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: _shimmerBox(height: 80, borderRadius: 12),
+          ),
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: _shimmerBox(height: 80, borderRadius: 12),
+          ),
+          const SizedBox(height: 32),
         ],
       ),
     );
   }
 
-  Widget _shimmerBox({required double height, double borderRadius = 12}) {
+  Widget _shimmerBox({
+    required double height,
+    double? width,
+    double borderRadius = 12,
+  }) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.3, end: 1.0),
       duration: const Duration(milliseconds: 1200),
@@ -497,7 +461,7 @@ class _HomePageState extends State<HomePage> {
       },
       child: Container(
         height: height,
-        width: double.infinity,
+        width: width ?? double.infinity,
         decoration: BoxDecoration(
           color: AppColors.bgSurface,
           borderRadius: BorderRadius.circular(borderRadius),

@@ -97,7 +97,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Start managing your business with BillPro',
+                    'Start managing your business with BillCube',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: AppColors.textSecondary,
                         ),

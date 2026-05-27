@@ -1,5 +1,5 @@
 name: billpro
-description: "BillPro - GST Billing & Accounting App for Indian SMEs"
+description: "BillCube - GST Billing & Accounting App for Indian SMEs"
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -75,15 +75,18 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/icon.png"
+  image_path: "assets/images/billcube_icon.jpeg"
   min_sdk_android: 24
   adaptive_icon_background: "#1A1A2E"
-  adaptive_icon_foreground: "assets/images/icon_foreground.png"
+  adaptive_icon_foreground: "assets/images/billcube_icon.jpeg"
+  web:
+    generate: true
+    image_path: "assets/images/billcube_icon.jpeg"
 
 # ─── Native Splash Config ─────────────────────────────────────────────────────
 flutter_native_splash:
   color: "#1A1A2E"
-  image: "assets/images/splash.png"
+  image: "assets/images/billcube_icon.jpeg"
   android: true
   ios: true
 

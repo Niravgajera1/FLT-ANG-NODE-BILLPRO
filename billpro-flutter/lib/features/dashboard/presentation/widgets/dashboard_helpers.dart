@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_theme.dart';
 
-/// Formats a number as Indian currency (₹).
+/// Formats a number as Indian currency (₹) — compact.
 String formatCurrency(double value) {
   if (value.abs() >= 10000000) {
     return '₹${(value / 10000000).toStringAsFixed(2)} Cr';
@@ -13,6 +13,16 @@ String formatCurrency(double value) {
     return '₹${(value / 1000).toStringAsFixed(1)}K';
   }
   return '₹${value.toStringAsFixed(value.truncateToDouble() == value ? 0 : 2)}';
+}
+
+/// Formats a number as full Indian currency (₹48,486.20) with comma separators.
+String formatCurrencyFull(double value) {
+  final formatter = NumberFormat.currency(
+    locale: 'en_IN',
+    symbol: '₹',
+    decimalDigits: 2,
+  );
+  return formatter.format(value);
 }
 
 /// Formats a number as compact (no currency).

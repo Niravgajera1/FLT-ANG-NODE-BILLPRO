@@ -7,5 +7,5 @@ class AppConfig {
   static int get apiTimeout =>
       int.tryParse(dotenv.env['API_TIMEOUT'] ?? '30000') ?? 30000;
 
-  static String get appName => dotenv.env['APP_NAME'] ?? 'BillPro';
+  static String get appName => dotenv.env['APP_NAME'] ?? 'BillCube';
 }

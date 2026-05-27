@@ -71,7 +71,7 @@ class BillProApp extends StatelessWidget {
     );
 
     return MaterialApp.router(
-      title: 'BillPro',
+      title: 'BillCube',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       themeMode: ThemeMode.light,

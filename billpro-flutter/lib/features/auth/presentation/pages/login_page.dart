@@ -69,20 +69,23 @@ class _LoginPageState extends State<LoginPage> {
                       width: 72,
                       height: 72,
                       decoration: BoxDecoration(
-                        gradient: AppColors.primaryGradient,
                         borderRadius: BorderRadius.circular(22),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.25),
+                            color: Colors.black.withValues(alpha: 0.12),
                             blurRadius: 20,
                             spreadRadius: 2,
                           ),
                         ],
                       ),
-                      child: const Icon(
-                        Icons.receipt_long_rounded,
-                        size: 36,
-                        color: Colors.white,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(22),
+                        child: Image.asset(
+                          'assets/images/billcube_icon.jpeg',
+                          width: 72,
+                          height: 72,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                   ),
@@ -101,7 +104,7 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 8),
                   Center(
                     child: Text(
-                      'Sign in to continue to BillPro',
+                      'Sign in to continue to BillCube',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: AppColors.textSecondary,
                           ),
