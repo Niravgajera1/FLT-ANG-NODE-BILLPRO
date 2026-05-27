@@ -60,7 +60,9 @@ class _HomePageState extends State<HomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // ── Greeting Banner ─────────────────────
-                    _buildGreetingBanner(context),
+                    Consumer<DashboardProvider>(
+                      builder: (ctx, d, _) => _buildGreetingBanner(ctx, d.isLoading),
+                    ),
 
                     const SizedBox(height: 16),
 
@@ -212,7 +214,7 @@ class _HomePageState extends State<HomePage> {
 
   // ─── Greeting Banner ────────────────────────────────────────────────────
 
-  Widget _buildGreetingBanner(BuildContext context) {
+  Widget _buildGreetingBanner(BuildContext context, [bool isRefreshing = false]) {
     final auth = context.read<AuthProvider>();
     final firstName = (auth.user?.fullName ?? '').split(' ').first;
     final greeting = _getGreeting();
@@ -293,8 +295,10 @@ class _HomePageState extends State<HomePage> {
                 label: 'Refresh',
                 icon: Icons.refresh_rounded,
                 outlined: true,
-                onTap: () =>
-                    context.read<DashboardProvider>().loadSummary(),
+                isLoading: isRefreshing,
+                onTap: isRefreshing
+                    ? () {}
+                    : () => context.read<DashboardProvider>().loadSummary(),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -315,6 +319,7 @@ class _HomePageState extends State<HomePage> {
     required String label,
     IconData? icon,
     required bool outlined,
+    bool isLoading = false,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
@@ -334,7 +339,17 @@ class _HomePageState extends State<HomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: outlined ? MainAxisSize.min : MainAxisSize.max,
           children: [
-            if (icon != null) ...[
+            if (isLoading) ...[
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(width: 6),
+            ] else if (icon != null) ...[
               Icon(icon,
                   size: 16,
                   color: outlined ? Colors.white : AppColors.primary),

@@ -18,6 +18,8 @@ class SalesProvider extends ChangeNotifier {
 
   bool _isLoading = false;
   bool _isSaving = false;
+  bool _isPdfLoading = false;
+  String? _pdfLoadingId;
   String? _errorMessage;
   String _searchQuery = '';
 
@@ -26,6 +28,8 @@ class SalesProvider extends ChangeNotifier {
   List<OptionModel> get items => _items;
   bool get isLoading => _isLoading;
   bool get isSaving => _isSaving;
+  bool get isPdfLoading => _isPdfLoading;
+  String? get pdfLoadingId => _pdfLoadingId;
   String? get errorMessage => _errorMessage;
 
   int get totalInvoices => _invoices.length;
@@ -162,12 +166,17 @@ class SalesProvider extends ChangeNotifier {
   }
 
   Future<void> downloadPdf(String id) async {
+    _isPdfLoading = true;
+    _pdfLoadingId = id;
+    notifyListeners();
     try {
       final file = await _repository.downloadPdf(id);
       await OpenFile.open(file.path);
     } catch (e) {
       _errorMessage = 'Failed to download PDF';
-      notifyListeners();
     }
+    _isPdfLoading = false;
+    _pdfLoadingId = null;
+    notifyListeners();
   }
 }

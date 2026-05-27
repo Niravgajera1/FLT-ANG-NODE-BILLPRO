@@ -112,18 +112,21 @@ class _SalesListPageState extends State<SalesListPage> {
                       ),
                       const Divider(height: 1),
                       Expanded(
-                        child: ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
-                          itemCount: p.invoices.length,
-                          itemBuilder: (ctx, i) {
-                            final invoice = p.invoices[i];
-                            return _InvoiceCard(
-                              invoice: invoice,
-                              onView: () => p.downloadPdf(invoice.id),
-                              onEdit: () => _openForm(context, invoice),
-                              onDelete: () => _confirmDelete(context, invoice),
-                            );
-                          },
+                        child: Consumer<SalesProvider>(
+                          builder: (ctx, sp, _) => ListView.builder(
+                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+                            itemCount: sp.invoices.length,
+                            itemBuilder: (ctx, i) {
+                              final invoice = sp.invoices[i];
+                              return _InvoiceCard(
+                                invoice: invoice,
+                                isPdfLoading: sp.isPdfLoading && sp.pdfLoadingId == invoice.id,
+                                onView: () => sp.downloadPdf(invoice.id),
+                                onEdit: () => _openForm(context, invoice),
+                                onDelete: () => _confirmDelete(context, invoice),
+                              );
+                            },
+                          ),
                         ),
                       ),
                     ]),
@@ -241,11 +244,12 @@ class _Stat extends StatelessWidget {
 
 class _InvoiceCard extends StatelessWidget {
   final SalesInvoiceModel invoice;
+  final bool isPdfLoading;
   final VoidCallback onView;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const _InvoiceCard({required this.invoice, required this.onView, required this.onEdit, required this.onDelete});
+  const _InvoiceCard({required this.invoice, this.isPdfLoading = false, required this.onView, required this.onEdit, required this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -298,12 +302,18 @@ class _InvoiceCard extends StatelessWidget {
                 Text('₹${invoice.grandTotal.toStringAsFixed(2)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
               ])),
               InkWell(
-                onTap: onView,
+                onTap: isPdfLoading ? null : onView,
                 borderRadius: BorderRadius.circular(8),
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(color: AppColors.primarySoft, borderRadius: BorderRadius.circular(8)),
-                  child: const Icon(Icons.picture_as_pdf_outlined, size: 16, color: AppColors.primary),
+                  child: isPdfLoading
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                        )
+                      : const Icon(Icons.picture_as_pdf_outlined, size: 16, color: AppColors.primary),
                 ),
               ),
               const SizedBox(width: 8),
